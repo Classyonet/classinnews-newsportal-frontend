@@ -6,6 +6,9 @@ import Image from 'next/image';
 import { getRelativeTime } from '@/lib/timeUtils';
 import AdDisplay from '@/components/AdDisplay';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3004';
+const ADMIN_API_URL = process.env.NEXT_PUBLIC_ADMIN_API_URL || 'http://localhost:3002';
+
 interface Article {
   id: string;
   title: string;
@@ -47,7 +50,7 @@ export default function HomePage() {
   useEffect(() => {
     const loadSettings = async () => {
       try {
-        const res = await fetch('http://localhost:3002/api/settings/public/homepage');
+        const res = await fetch(`${ADMIN_API_URL}/api/settings/public/homepage`);
         if (!res.ok) {
           throw new Error(`Failed to fetch settings: ${res.status} ${res.statusText}`);
         }
@@ -68,7 +71,7 @@ export default function HomePage() {
         // If enabled, fetch random articles for carousel immediately
         if (enabled) {
           try {
-            const articlesRes = await fetch('http://localhost:3004/api/articles/random?limit=6');
+            const articlesRes = await fetch(`${API_URL}/api/articles/random?limit=6`);
             if (!articlesRes.ok) {
               throw new Error(`Failed to fetch articles: ${articlesRes.status}`);
             }
@@ -105,7 +108,7 @@ export default function HomePage() {
       try {
         // Fetch homepage settings (public endpoint)
         try {
-          const settingsRes = await fetch('http://localhost:3002/api/settings/public/homepage');
+          const settingsRes = await fetch(`${ADMIN_API_URL}/api/settings/public/homepage`);
           if (!settingsRes.ok) {
             throw new Error(`Failed to fetch settings: ${settingsRes.status}`);
           }
@@ -124,7 +127,7 @@ export default function HomePage() {
           // If enabled, fetch random articles for carousel
           if (enabled) {
             try {
-              const articlesRes = await fetch('http://localhost:3004/api/articles/random?limit=6');
+              const articlesRes = await fetch(`${API_URL}/api/articles/random?limit=6`);
               if (!articlesRes.ok) {
                 throw new Error(`Failed to fetch articles: ${articlesRes.status}`);
               }
@@ -149,7 +152,7 @@ export default function HomePage() {
         }
 
         // Fetch featured article (first trending)
-        fetch('http://localhost:3004/api/articles/trending?limit=1')
+        fetch(`${API_URL}/api/articles/trending?limit=1`)
           .then(res => res.json())
           .then(data => {
             // API returns array directly
@@ -159,7 +162,7 @@ export default function HomePage() {
           .catch(err => console.error('Error fetching featured:', err));
 
         // Fetch popular stories (trending 2-6)
-        fetch('http://localhost:3004/api/articles/trending?limit=6')
+        fetch(`${API_URL}/api/articles/trending?limit=6`)
           .then(res => res.json())
           .then(data => {
             // API returns array directly
@@ -169,7 +172,7 @@ export default function HomePage() {
           .catch(err => console.error('Error fetching popular:', err));
 
         // Fetch latest news
-        fetch('http://localhost:3004/api/articles/latest?limit=6')
+        fetch(`${API_URL}/api/articles/latest?limit=6`)
           .then(res => res.json())
           .then(data => {
             // API returns array directly
@@ -179,7 +182,7 @@ export default function HomePage() {
           .catch(err => console.error('Error fetching latest:', err));
 
         // Fetch most read (top 5 by view count)
-        fetch('http://localhost:3004/api/articles/most-read?limit=5')
+        fetch(`${API_URL}/api/articles/most-read?limit=5`)
           .then(res => res.json())
           .then(data => {
             // API returns array directly
@@ -192,7 +195,7 @@ export default function HomePage() {
         const categories = ['politics', 'entertainment', 'foreign', 'local'];
         const topCategories = categories.slice(0, 4);
         topCategories.forEach(cat => {
-          fetch(`http://localhost:3004/api/categories/${cat}?limit=4`)
+          fetch(`${API_URL}/api/categories/${cat}?limit=4`)
             .then(res => res.json())
             .then(data => {
               // Category endpoint returns { category, articles, pagination }

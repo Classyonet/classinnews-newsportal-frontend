@@ -7,6 +7,8 @@ import Link from 'next/link';
 import { Heart, MessageCircle, Share2, ThumbsUp, ThumbsDown, Facebook, Twitter, Linkedin, UserPlus, Users } from 'lucide-react';
 import AdDisplay from '@/components/AdDisplay';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3004';
+
 interface Article {
   id: string;
   title: string;
@@ -91,7 +93,7 @@ export default function ArticlePage() {
     if (!slug) return;
 
     // Fetch article details
-    fetch(`http://localhost:3004/api/articles/${slug}`)
+    fetch(`${API_URL}/api/articles/${slug}`)
       .then(res => {
         if (!res.ok) throw new Error('Article not found');
         return res.json();
@@ -114,7 +116,7 @@ export default function ArticlePage() {
           const token = localStorage.getItem('reader_token');
           
           // Fetch like status
-          fetch(`http://localhost:3004/api/articles/${data.id}/like-status`, {
+          fetch(`${API_URL}/api/articles/${data.id}/like-status`, {
             headers: { 'Authorization': `Bearer ${token}` }
           })
             .then(res => res.json())
@@ -122,7 +124,7 @@ export default function ArticlePage() {
             .catch(err => console.error('Error fetching like status:', err));
           
           // Fetch follow status
-          fetch(`http://localhost:3004/api/users/${data.author.id}/follow-status`, {
+          fetch(`${API_URL}/api/users/${data.author.id}/follow-status`, {
             headers: { 'Authorization': `Bearer ${token}` }
           })
             .then(res => res.json())
