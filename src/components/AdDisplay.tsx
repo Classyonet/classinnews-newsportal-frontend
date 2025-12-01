@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 
+const ADMIN_API_URL = process.env.NEXT_PUBLIC_ADMIN_API_URL || 'http://localhost:3002';
+
 interface AdPlacement {
   id: string;
   placement_name: string;
@@ -34,7 +36,7 @@ export default function AdDisplay({ position, pageType, className = '' }: AdDisp
   const fetchAd = async () => {
     try {
       console.log(`[AdDisplay] Fetching ads for ${pageType} - position: ${position}`);
-      const response = await fetch(`http://localhost:3002/api/ads/active/${pageType}`);
+      const response = await fetch(`${ADMIN_API_URL}/api/ads/active/${pageType}`);
       const ads: AdPlacement[] = await response.json();
       console.log(`[AdDisplay] Received ${ads.length} active ads for ${pageType}:`, ads);
       
