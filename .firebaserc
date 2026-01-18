@@ -1,0 +1,15 @@
+{
+  "projects": {
+    "default": "classinnews"
+  },
+  "targets": {
+    "classinnews": {
+      "hosting": {
+        "newsportal": [
+          "classinnews-newsportal"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}

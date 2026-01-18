@@ -1,0 +1,16 @@
+# Render.yaml for NewsPortal Frontend
+# This deploys the Next.js app with SSR support
+
+services:
+  - type: web
+    name: classinnews-newsportal-frontend
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_API_URL
+        value: https://classinnews-newsportal-backend.onrender.com
