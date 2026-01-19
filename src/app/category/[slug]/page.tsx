@@ -7,11 +7,6 @@ import Link from 'next/link'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3004/api'
 
-// Required for static export with dynamic routes
-export function generateStaticParams() {
-  return []
-}
-
 export default function CategoryPage() {
   const params = useParams()
   const searchParams = useSearchParams()
