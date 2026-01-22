@@ -4,11 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3006",
-    "build": "npx @cloudflare/next-on-pages",
-    "build:next": "next build",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "preview": "npx wrangler pages dev .vercel/output/static"
+    "pages:build": "npx @cloudflare/next-on-pages",
+    "pages:dev": "npx wrangler pages dev .vercel/output/static --compatibility-flag=nodejs_compat"
   },
   "dependencies": {
     "@next/font": "14.0.4",
