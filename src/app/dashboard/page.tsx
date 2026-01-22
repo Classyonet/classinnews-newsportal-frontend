@@ -5,11 +5,13 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { User, Mail, Phone, Calendar, Heart, Share2, MessageSquare, Users, Settings, ArrowLeft } from 'lucide-react'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3004/api'
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3004'
+const API_URL = `${API_BASE}/api`
 
 export default function DashboardPage() {
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [statsLoading, setStatsLoading] = useState(true)
   const [stats, setStats] = useState({
     articlesLiked: 0,
     articlesShared: 0,
@@ -31,13 +33,42 @@ export default function DashboardPage() {
     try {
       const user = JSON.parse(userStr)
       setCurrentUser(user)
-      // TODO: Fetch user stats from backend
       setLoading(false)
+      
+      // Fetch user stats from backend
+      fetchUserStats(token)
     } catch (error) {
       console.error('Error loading user data:', error)
       router.push('/login')
     }
   }, [router])
+
+  const fetchUserStats = async (token: string) => {
+    try {
+      setStatsLoading(true)
+      const response = await fetch(`${API_URL}/users/me/stats`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        if (data.success && data.stats) {
+          setStats({
+            articlesLiked: data.stats.articlesLiked || 0,
+            articlesShared: data.stats.articlesShared || 0,
+            commentsPosted: data.stats.commentsPosted || 0,
+            followingCount: data.stats.followingCount || 0
+          })
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching stats:', error)
+    } finally {
+      setStatsLoading(false)
+    }
+  }
 
   const formatDate = (dateString: string) => {
     if (!dateString) return 'N/A'

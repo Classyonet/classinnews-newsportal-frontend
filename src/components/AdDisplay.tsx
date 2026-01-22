@@ -64,16 +64,20 @@ export default function AdDisplay({ position, pageType, className = '' }: AdDisp
 
   console.log(`[AdDisplay] Rendering ad for ${pageType}/${position}:`, ad.display_name);
   
+  // Determine if this is a sidebar ad to apply tighter constraints
+  const isSidebarAd = position.includes('sidebar');
+  const isTopBottomAd = position === 'top' || position === 'bottom';
+  
   // Render image ad
   if (ad.ad_type === 'image' && ad.image_url) {
     return (
-      <div className={`ad-container ${className}`}>
-        <div className="ad-wrapper max-w-full overflow-hidden flex items-center justify-center">
+      <div className={`ad-container w-full ${className}`}>
+        <div className="ad-wrapper w-full max-w-full overflow-hidden flex items-center justify-center">
           <div
-            className="ad-content"
+            className="ad-content max-w-full"
             style={{
+              width: isSidebarAd ? '100%' : (ad.width || 'auto'),
               maxWidth: '100%',
-              width: ad.width || 'auto',
               height: ad.height || 'auto',
             }}
           >
@@ -82,14 +86,24 @@ export default function AdDisplay({ position, pageType, className = '' }: AdDisp
                 <img
                   src={ad.image_url}
                   alt="Advertisement"
-                  style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                  className="max-w-full h-auto"
+                  style={{ 
+                    width: '100%', 
+                    height: ad.height || 'auto',
+                    objectFit: isSidebarAd ? 'contain' : 'cover' 
+                  }}
                 />
               </a>
             ) : (
               <img
                 src={ad.image_url}
                 alt="Advertisement"
-                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                className="max-w-full h-auto"
+                style={{ 
+                  width: '100%', 
+                  height: ad.height || 'auto',
+                  objectFit: isSidebarAd ? 'contain' : 'cover' 
+                }}
               />
             )}
           </div>
@@ -100,14 +114,14 @@ export default function AdDisplay({ position, pageType, className = '' }: AdDisp
   
   // Render code ad
   return (
-    <div className={`ad-container ${className}`}>
-      <div className="ad-wrapper max-w-full overflow-hidden flex items-center justify-center">
+    <div className={`ad-container w-full ${className}`}>
+      <div className="ad-wrapper w-full max-w-full overflow-hidden flex items-center justify-center">
         <div
-          className="ad-content"
+          className="ad-content max-w-full"
           dangerouslySetInnerHTML={{ __html: ad.ad_code || '' }}
           style={{
+            width: isSidebarAd ? '100%' : (ad.width || 'auto'),
             maxWidth: '100%',
-            width: ad.width || 'auto',
             height: ad.height || 'auto',
           }}
         />

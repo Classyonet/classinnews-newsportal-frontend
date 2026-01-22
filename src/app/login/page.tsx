@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Mail, Lock, AlertCircle, Phone } from 'lucide-react'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3004/api'
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3004'
+const API_URL = `${API_BASE}/api`
 
 export default function LoginPage() {
   const [loginMethod, setLoginMethod] = useState<'email' | 'phone' | 'social'>('email')
@@ -133,10 +134,10 @@ export default function LoginPage() {
       `
       document.body.appendChild(successOverlay)
       
-      // Redirect after 2.5 seconds
+      // Redirect after 2.5 seconds - use window.location for full page refresh
       setTimeout(() => {
         document.body.removeChild(successOverlay)
-        router.push('/')
+        window.location.href = '/'
       }, 2500)
     } catch (err: any) {
       console.error('❌ Login error:', err)

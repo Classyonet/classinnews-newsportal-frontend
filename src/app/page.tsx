@@ -244,13 +244,13 @@ export default function HomePage() {
 
   return (
     <div className="bg-gray-50 min-h-screen">
-      {/* Top Banner Ad - Only shows on desktop */}
-      <div className="hidden md:block bg-white border-b border-gray-200 py-3">
-        <AdDisplay position="top" pageType="homepage" className="flex justify-center" />
-      </div>
-      
       {/* Main Content Area */}
       <div className="max-w-7xl mx-auto px-4 py-6">
+        {/* Top Banner Ad - Contained within main content */}
+        <div className="hidden md:block bg-white border border-gray-200 rounded-lg p-3 mb-6">
+          <AdDisplay position="top" pageType="homepage" className="flex justify-center" />
+        </div>
+        
         {/* Main Grid Layout - Continuous 2/3 + 1/3 */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content Column - 2/3 width */}
@@ -384,9 +384,9 @@ export default function HomePage() {
               )
             )}
 
-            {/* Ad Banner - After Slider/Carousel */}
+            {/* Ad Banner - Content Top */}
             <div className="py-4">
-              <AdDisplay position="after_slider" pageType="homepage" className="flex justify-center" />
+              <AdDisplay position="content_top" pageType="homepage" className="flex justify-center" />
             </div>
 
             {/* Most Read Section */}
@@ -430,9 +430,9 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Ad Banner - After Most Read */}
+            {/* Ad Banner - Sidebar Middle (in content flow) */}
             <div className="py-4">
-              <AdDisplay position="after_most_read" pageType="homepage" className="flex justify-center" />
+              <AdDisplay position="sidebar_middle" pageType="homepage" className="flex justify-center" />
             </div>
 
             {/* Latest News Section */}
@@ -595,9 +595,11 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Ad Banner - Before Categories */}
+        {/* Full Width Ad Banner - Before Categories (Contained) */}
         <div className="py-4 mt-8">
-          <AdDisplay position="before_categories" pageType="homepage" className="flex justify-center" />
+          <div className="flex justify-center max-w-full overflow-hidden">
+            <AdDisplay position="content_bottom" pageType="homepage" className="" />
+          </div>
         </div>
 
         {/* Category Sections - Top 4 in Columns */}
@@ -648,10 +650,7 @@ export default function HomePage() {
           })}
         </div>
 
-        {/* Content Bottom Ad - Hidden on mobile */}
-        <div className="hidden md:block mt-8 py-4 bg-white border-y border-gray-200">
-          <AdDisplay position="content_bottom" pageType="homepage" className="flex justify-center" />
-        </div>
+
       </div>
     </div>
   );

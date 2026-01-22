@@ -9,9 +9,45 @@ import NotificationManager from '@/components/NotificationManager'
 
 const inter = Inter({ subsets: ['latin'] })
 
-export const metadata: Metadata = {
-  title: 'ClassinNews - Your Source for Quality News',
-  description: 'Read the latest news and articles from top publishers',
+// Fetch branding settings from backend
+async function getBrandingSettings() {
+  try {
+    const res = await fetch('http://localhost:3002/api/settings/branding', {
+      cache: 'no-store'
+    });
+    if (res.ok) {
+      const data = await res.json();
+      return data.data;
+    }
+  } catch (error) {
+    console.error('Failed to fetch branding settings:', error);
+  }
+  return {
+    siteName: 'ClassinNews',
+    siteDescription: 'Your Source for Quality News',
+    site_logo_url: '',
+    site_favicon_url: ''
+  };
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const branding = await getBrandingSettings();
+  
+  const metadata: Metadata = {
+    title: `${branding.siteName} - ${branding.siteDescription}`,
+    description: branding.siteDescription,
+  };
+  
+  // Add favicon if available
+  if (branding.site_favicon_url) {
+    metadata.icons = {
+      icon: branding.site_favicon_url,
+      shortcut: branding.site_favicon_url,
+      apple: branding.site_favicon_url,
+    };
+  }
+  
+  return metadata;
 }
 
 export default function RootLayout({

@@ -3,18 +3,33 @@
 import Link from 'next/link'
 import { Search, Youtube, Facebook, User, Settings, LogOut, ChevronDown } from 'lucide-react'
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import AdDisplay from './AdDisplay'
+
+interface BrandingSettings {
+  siteName: string
+  siteDescription: string
+  site_logo_url: string
+  site_favicon_url: string
+}
 
 export default function Header() {
   const [searchQuery, setSearchQuery] = useState('')
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [showUserMenu, setShowUserMenu] = useState(false)
+  const [mounted, setMounted] = useState(false)
+  const [branding, setBranding] = useState<BrandingSettings>({
+    siteName: 'ClassinNews',
+    siteDescription: 'Your Source for Quality News',
+    site_logo_url: '',
+    site_favicon_url: ''
+  })
   const router = useRouter()
+  const pathname = usePathname()
 
-  useEffect(() => {
-    // Check authentication status
+  // Check auth status
+  const checkAuthStatus = () => {
     const token = localStorage.getItem('reader_token')
     const userStr = localStorage.getItem('reader_user')
     
@@ -27,9 +42,51 @@ export default function Header() {
         console.error('Error parsing user data:', error)
         localStorage.removeItem('reader_token')
         localStorage.removeItem('reader_user')
+        setIsAuthenticated(false)
+        setCurrentUser(null)
       }
+    } else {
+      setIsAuthenticated(false)
+      setCurrentUser(null)
+    }
+  }
+
+  useEffect(() => {
+    setMounted(true)
+    checkAuthStatus()
+    fetchBranding()
+
+    // Listen for storage changes (for login/logout in other tabs)
+    const handleStorageChange = () => {
+      checkAuthStatus()
+    }
+    window.addEventListener('storage', handleStorageChange)
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange)
     }
   }, [])
+
+  // Re-check auth when pathname changes (after navigation)
+  useEffect(() => {
+    if (mounted) {
+      checkAuthStatus()
+    }
+  }, [pathname, mounted])
+
+  const fetchBranding = async () => {
+    try {
+      const response = await fetch('http://localhost:3002/api/settings/branding')
+      if (response.ok) {
+        const data = await response.json()
+        if (data.success && data.data) {
+          setBranding(data.data)
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch branding:', error)
+    }
+  }
 
   const handleLogout = () => {
     localStorage.removeItem('reader_token')
@@ -230,15 +287,34 @@ export default function Header() {
             {/* Left - Logo */}
             <Link href="/" className="flex items-center">
               <div className="relative">
-                <div className="flex items-center">
-                  <span className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight">
-                    <span className="text-gray-900">Classy</span>
-                    <span className="text-red-600">News</span>
-                  </span>
-                  {/* Red Triangle */}
-                  <div className="ml-1 sm:ml-2 w-0 h-0 border-l-[12px] sm:border-l-[16px] lg:border-l-[20px] border-l-transparent border-t-[24px] sm:border-t-[30px] lg:border-t-[35px] border-t-red-600 border-r-[12px] sm:border-r-[16px] lg:border-r-[20px] border-r-transparent transform rotate-90"></div>
-                </div>
-                <p className="text-xs text-gray-500 mt-1">Your Source for Quality News</p>
+                {branding.site_logo_url ? (
+                  <div className="flex flex-col">
+                    <img 
+                      src={branding.site_logo_url.startsWith('http') ? branding.site_logo_url : branding.site_logo_url}
+                      alt={branding.siteName}
+                      className="h-12 w-auto max-w-[250px] object-contain"
+                      onError={(e) => {
+                        console.error('Logo failed to load:', branding.site_logo_url);
+                        // Hide broken image and show fallback
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                      }}
+                    />
+                    {branding.siteDescription && (
+                      <p className="text-xs text-gray-500 mt-1">{branding.siteDescription}</p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex items-center">
+                    <span className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight">
+                      <span className="text-gray-900">Classy</span>
+                      <span className="text-red-600">News</span>
+                    </span>
+                    {/* Red Triangle */}
+                    <div className="ml-1 sm:ml-2 w-0 h-0 border-l-[12px] sm:border-l-[16px] lg:border-l-[20px] border-l-transparent border-t-[24px] sm:border-t-[30px] lg:border-t-[35px] border-t-red-600 border-r-[12px] sm:border-r-[16px] lg:border-r-[20px] border-r-transparent transform rotate-90"></div>
+                    <p className="text-xs text-gray-500 mt-1 absolute -bottom-5 left-0">{branding.siteDescription}</p>
+                  </div>
+                )}
               </div>
             </Link>
 

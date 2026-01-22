@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Mail, User, Lock, AlertCircle, CheckCircle, Phone, MessageSquare } from 'lucide-react'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3004/api'
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3004'
+const API_URL = `${API_BASE}/api`
 
 export default function RegisterPage() {
   const [regMethod, setRegMethod] = useState<'email' | 'mobile' | 'social'>('email')
