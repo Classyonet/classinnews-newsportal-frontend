@@ -1,8 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'export',
+  trailingSlash: true,
   images: {
     unoptimized: true,
-    domains: ['localhost', 'via.placeholder.com', 'images.unsplash.com', 'images.ctfassets.net'],
     remotePatterns: [
       {
         protocol: 'https',
@@ -13,6 +14,10 @@ const nextConfig = {
         hostname: 'localhost',
       },
     ],
+  },
+  // Cloudflare Pages compatibility
+  experimental: {
+    runtime: 'edge',
   },
 }
 
