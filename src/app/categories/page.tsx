@@ -1,3 +1,5 @@
+export const runtime = 'edge';
+
 import CategoryList from '@/components/CategoryList'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3004/api'

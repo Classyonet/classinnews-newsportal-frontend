@@ -1,3 +1,5 @@
+export const runtime = 'edge';
+
 import ArticleGrid from '@/components/ArticleGrid'
 import { Search } from 'lucide-react'
 

@@ -1,3 +1,5 @@
+export const runtime = 'edge';
+
 import ArticleGrid from '@/components/ArticleGrid'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3004/api'
