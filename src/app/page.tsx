@@ -36,6 +36,7 @@ export default function HomePage() {
   const [latestNews, setLatestNews] = useState<Article[]>([]);
   const [mostRead, setMostRead] = useState<Article[]>([]);
   const [categoryArticles, setCategoryArticles] = useState<Record<string, Article[]>>({});
+  const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
   // Carousel state
@@ -193,18 +194,31 @@ export default function HomePage() {
           })
           .catch(err => console.error('Error fetching most read:', err));
 
-        // Fetch articles by category (only first 4 categories with articles)
-        const categories = ['politics', 'entertainment', 'foreign', 'local'];
-        const topCategories = categories.slice(0, 4);
-        topCategories.forEach(cat => {
-          fetch(`${API_URL}/api/categories/${cat}?limit=4`)
-            .then(res => res.json())
-            .then(data => {
-              // Category endpoint returns { category, articles, pagination }
-              setCategoryArticles(prev => ({ ...prev, [cat]: data.articles || [] }));
-            })
-            .catch(err => console.error(`Error fetching ${cat}:`, err));
-        });
+        // Fetch all categories first
+        fetch(`${API_URL}/api/categories`)
+          .then(res => res.json())
+          .then(data => {
+            // API returns array of categories directly
+            const cats = Array.isArray(data) ? data : [];
+            console.log('Loaded categories:', cats);
+            setCategories(cats);
+
+            // Fetch articles for first 4 categories
+            const topCategories = cats.slice(0, 4);
+            topCategories.forEach((cat: any) => {
+              fetch(`${API_URL}/api/categories/${cat.slug}?limit=4`)
+                .then(res => res.json())
+                .then(data => {
+                  // Category endpoint returns { category, articles, pagination }
+                  setCategoryArticles(prev => ({ ...prev, [cat.slug]: data.articles || [] }));
+                })
+                .catch(err => console.error(`Error fetching ${cat.slug}:`, err));
+            });
+          })
+          .catch(err => {
+            console.error('Error fetching categories:', err);
+            setCategories([]);
+          });
       } catch (error) {
         console.error('Error loading data:', error);
       } finally {
@@ -606,16 +620,16 @@ export default function HomePage() {
 
         {/* Category Sections - Top 4 in Columns */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mt-8">
-          {['politics', 'entertainment', 'foreign', 'local'].map((category) => {
-            const articles = categoryArticles[category] || [];
+          {categories.slice(0, 4).map((category) => {
+            const articles = categoryArticles[category.slug] || [];
             if (articles.length === 0) return null;
-            
+
             return (
-              <div key={category} className="bg-white shadow-sm p-4">
+              <div key={category.id} className="bg-white shadow-sm p-4">
                 <div className="flex items-center justify-between mb-4 pb-2 border-b-2 border-red-600">
-                  <h2 className="text-lg font-bold text-gray-900 capitalize">{category}</h2>
+                  <h2 className="text-lg font-bold text-gray-900">{category.name}</h2>
                   <Link
-                    href={`/categories/${category}`}
+                    href={`/categories/${category.slug}`}
                     className="text-red-600 hover:text-red-700 text-xs font-semibold"
                   >
                     View All →
