@@ -19,24 +19,52 @@ export default function LoginPage() {
   const [otpSent, setOtpSent] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [errorCode, setErrorCode] = useState('')
+  const [resending, setResending] = useState(false)
+  const [resendSuccess, setResendSuccess] = useState(false)
   const router = useRouter()
+
+  const handleResendVerification = async () => {
+    setResending(true)
+    setResendSuccess(false)
+
+    try {
+      const response = await fetch(`${API_URL}/auth/resend-verification`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        setResendSuccess(true)
+      } else {
+        alert(data.message || 'Failed to resend verification email')
+      }
+    } catch (error) {
+      alert('Failed to resend verification email. Please try again.')
+    } finally {
+      setResending(false)
+    }
+  }
 
   const handleSendOTP = async () => {
     if (!phoneNumber) {
       setError('Please enter your phone number')
       return
     }
-    
+
     setLoading(true)
     setError('')
-    
+
     try {
       // TODO: Implement actual OTP sending
       console.log('📱 Sending OTP to:', phoneNumber)
-      
+
       // Simulate OTP sending
       await new Promise(resolve => setTimeout(resolve, 1000))
-      
+
       setOtpSent(true)
       alert('OTP sent to your phone number!')
     } catch (err: any) {
@@ -51,7 +79,9 @@ export default function LoginPage() {
     e.preventDefault()
     setLoading(true)
     setError('')
-    
+    setErrorCode('')
+    setResendSuccess(false)
+
     console.log('🔄 Starting login with method:', loginMethod)
     
     try {
@@ -97,9 +127,13 @@ export default function LoginPage() {
       console.log('📊 Response status:', res.status)
       const data = await res.json()
       console.log('📊 Response data:', data)
-      
+
       if (!res.ok) {
-        throw new Error(data.error || data.message || 'Login failed')
+        const err = new Error(data.error || data.message || 'Login failed')
+        if (data.code) {
+          setErrorCode(data.code)
+        }
+        throw err
       }
       
       // Store token and user
@@ -170,9 +204,29 @@ export default function LoginPage() {
           {/* Login Card */}
           <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
             {error && (
-              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
-                <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-red-700">{error}</p>
+              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+                  <p className="text-sm text-red-700">{error}</p>
+                </div>
+                {errorCode === 'EMAIL_NOT_VERIFIED' && (
+                  <div className="mt-3">
+                    {resendSuccess ? (
+                      <p className="text-sm text-green-600">
+                        ✓ Verification email sent! Please check your inbox.
+                      </p>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={handleResendVerification}
+                        disabled={resending}
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                      >
+                        {resending ? 'Sending...' : 'Resend Verification Email'}
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 
