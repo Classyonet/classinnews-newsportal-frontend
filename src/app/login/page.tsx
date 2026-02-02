@@ -2,7 +2,7 @@
 
 export const runtime = 'edge';
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Mail, Lock, AlertCircle, Phone } from 'lucide-react'
@@ -22,7 +22,35 @@ export default function LoginPage() {
   const [errorCode, setErrorCode] = useState('')
   const [resending, setResending] = useState(false)
   const [resendSuccess, setResendSuccess] = useState(false)
+  const [oauthProviders, setOauthProviders] = useState({ google: false, facebook: false, twitter: false })
   const router = useRouter()
+
+  // Check for OAuth error in URL
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    const errorParam = urlParams.get('error')
+    if (errorParam) {
+      setError(errorParam.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()))
+    }
+
+    // Fetch available OAuth providers
+    fetch(`${API_URL}/auth/oauth-providers`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.providers) {
+          setOauthProviders(data.providers)
+        }
+      })
+      .catch(console.error)
+  }, [])
+
+  const handleGoogleLogin = () => {
+    window.location.href = `${API_URL}/auth/google`
+  }
+
+  const handleFacebookLogin = () => {
+    window.location.href = `${API_URL}/auth/facebook`
+  }
 
   const handleResendVerification = async () => {
     setResending(true)
@@ -384,8 +412,9 @@ export default function LoginPage() {
                 <div className="space-y-3">
                   <button
                     type="button"
-                    onClick={() => setError('Google login is not yet implemented')}
-                    className="w-full flex items-center justify-center gap-3 bg-white border-2 border-gray-300 hover:border-gray-400 text-gray-700 font-semibold py-3 px-4 rounded-lg transition-colors"
+                    onClick={handleGoogleLogin}
+                    disabled={!oauthProviders.google}
+                    className="w-full flex items-center justify-center gap-3 bg-white border-2 border-gray-300 hover:border-gray-400 text-gray-700 font-semibold py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <svg className="h-5 w-5" viewBox="0 0 24 24">
                       <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -398,8 +427,9 @@ export default function LoginPage() {
 
                   <button
                     type="button"
-                    onClick={() => setError('Facebook login is not yet implemented')}
-                    className="w-full flex items-center justify-center gap-3 bg-[#1877F2] hover:bg-[#0d65d9] text-white font-semibold py-3 px-4 rounded-lg transition-colors"
+                    onClick={handleFacebookLogin}
+                    disabled={!oauthProviders.facebook}
+                    className="w-full flex items-center justify-center gap-3 bg-[#1877F2] hover:bg-[#0d65d9] text-white font-semibold py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
@@ -409,8 +439,9 @@ export default function LoginPage() {
 
                   <button
                     type="button"
-                    onClick={() => setError('Twitter login is not yet implemented')}
-                    className="w-full flex items-center justify-center gap-3 bg-black hover:bg-gray-900 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
+                    onClick={() => setError('Twitter login is coming soon')}
+                    disabled={!oauthProviders.twitter}
+                    className="w-full flex items-center justify-center gap-3 bg-black hover:bg-gray-900 text-white font-semibold py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
