@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3004';
+
 interface Category {
   id: string
   name: string
@@ -19,7 +21,7 @@ export default function CategoryNav() {
 
   useEffect(() => {
     // Fetch categories from API
-    fetch('http://localhost:3004/api/categories')
+    fetch(`${API_URL}/api/categories`)
       .then(res => res.json())
       .then(data => {
         console.log('Categories API response:', data)

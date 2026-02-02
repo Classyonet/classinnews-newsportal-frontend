@@ -138,7 +138,7 @@ export default function ArticlePage() {
         }
         
         // Fetch related articles
-        return fetch(`http://localhost:3004/api/articles/${slug}/related?limit=4`);
+        return fetch(`${API_URL}/api/articles/${slug}/related?limit=4`);
       })
       .then(res => res.json())
       .then(data => {
@@ -170,7 +170,7 @@ export default function ArticlePage() {
       const token = localStorage.getItem('reader_token');
       console.log('📝 Token exists:', !!token);
       
-      const res = await fetch(`http://localhost:3004/api/articles/${article?.id}/like`, {
+      const res = await fetch(`${API_URL}/api/articles/${article?.id}/like`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -211,7 +211,7 @@ export default function ArticlePage() {
 
     try {
       const token = localStorage.getItem('reader_token');
-      const res = await fetch(`http://localhost:3004/api/articles/${article?.id}/share`, {
+      const res = await fetch(`${API_URL}/api/articles/${article?.id}/share`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -269,7 +269,7 @@ export default function ArticlePage() {
 
     try {
       const token = localStorage.getItem('reader_token');
-      const res = await fetch(`http://localhost:3004/api/users/${article?.author.id}/follow`, {
+      const res = await fetch(`${API_URL}/api/users/${article?.author.id}/follow`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -542,7 +542,7 @@ export default function ArticlePage() {
                         
                         try {
                           const token = localStorage.getItem('reader_token');
-                          const res = await fetch(`http://localhost:3004/api/articles/${article?.id}/comments`, {
+                          const res = await fetch(`${API_URL}/api/articles/${article?.id}/comments`, {
                             method: 'POST',
                             headers: {
                               'Authorization': `Bearer ${token}`,
@@ -607,7 +607,7 @@ export default function ArticlePage() {
                                     onClick={async () => {
                                       try {
                                         const token = localStorage.getItem('reader_token');
-                                        const res = await fetch(`http://localhost:3004/api/comments/${comment.id}/like`, {
+                                        const res = await fetch(`${API_URL}/api/comments/${comment.id}/like`, {
                                           method: 'POST',
                                           headers: {
                                             'Authorization': `Bearer ${token}`,
@@ -684,7 +684,7 @@ export default function ArticlePage() {
                                       
                                       try {
                                         const token = localStorage.getItem('reader_token');
-                                        const res = await fetch(`http://localhost:3004/api/articles/${article?.id}/comments`, {
+                                        const res = await fetch(`${API_URL}/api/articles/${article?.id}/comments`, {
                                           method: 'POST',
                                           headers: {
                                             'Authorization': `Bearer ${token}`,
@@ -749,7 +749,7 @@ export default function ArticlePage() {
                                               onClick={async () => {
                                                 try {
                                                   const token = localStorage.getItem('reader_token');
-                                                  const res = await fetch(`http://localhost:3004/api/comments/${reply.id}/like`, {
+                                                  const res = await fetch(`${API_URL}/api/comments/${reply.id}/like`, {
                                                     method: 'POST',
                                                     headers: {
                                                       'Authorization': `Bearer ${token}`,
