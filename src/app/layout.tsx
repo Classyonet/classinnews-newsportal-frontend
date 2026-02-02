@@ -9,10 +9,12 @@ import NotificationManager from '@/components/NotificationManager'
 
 const inter = Inter({ subsets: ['latin'] })
 
+const ADMIN_API_URL = process.env.NEXT_PUBLIC_ADMIN_API_URL || 'https://classinnews-admin-backend.onrender.com';
+
 // Fetch branding settings from backend
 async function getBrandingSettings() {
   try {
-    const res = await fetch('http://localhost:3002/api/settings/branding', {
+    const res = await fetch(`${ADMIN_API_URL}/api/settings/branding`, {
       cache: 'no-store'
     });
     if (res.ok) {

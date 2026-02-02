@@ -75,8 +75,9 @@ export default function Header() {
   }, [pathname, mounted])
 
   const fetchBranding = async () => {
+    const ADMIN_API_URL = process.env.NEXT_PUBLIC_ADMIN_API_URL || 'https://classinnews-admin-backend.onrender.com'
     try {
-      const response = await fetch('http://localhost:3002/api/settings/branding')
+      const response = await fetch(`${ADMIN_API_URL}/api/settings/branding`)
       if (response.ok) {
         const data = await response.json()
         if (data.success && data.data) {
