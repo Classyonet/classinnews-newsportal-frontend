@@ -243,9 +243,9 @@ export default function HomePage() {
         </div>
         
         {/* Main Grid Layout - Continuous 2/3 + 1/3 */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* Main Content Column - 2/3 width */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-4">
             {/* Featured Article/Carousel */}
             {carouselSettings.enabled && carouselArticles.length > 0 ? (
               <div className="relative">
@@ -419,12 +419,6 @@ export default function HomePage() {
                       </p>
                       <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
                         <span>{new Date(article.publishedAt).toLocaleDateString()}</span>
-                        {(article as any).viewsCount && (
-                          <>
-                            <span>•</span>
-                            <span className="text-red-600 font-medium">{(article as any).viewsCount.toLocaleString()} views</span>
-                          </>
-                        )}
                       </div>
                     </div>
                   </Link>
@@ -480,14 +474,11 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Category Sections - Popular Categories Below Latest News */}
+            {/* Category Sections - Top 3 Categories with Most Stories */}
             {categories.length > 0 && Object.keys(categoryArticles).length > 0 && (
-              <div className="bg-white shadow-sm p-6">
-                <div className="flex items-center justify-between mb-4 pb-2 border-b-2 border-red-600">
-                  <h2 className="text-2xl font-bold text-gray-900">Popular Categories</h2>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {categories.slice(0, 4).map((category) => {
+              <div className="bg-white shadow-sm p-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {categories.slice(0, 3).map((category) => {
                     const articles = categoryArticles[category.slug] || [];
                     if (articles.length === 0) return null;
 
@@ -562,7 +553,7 @@ export default function HomePage() {
           </div>
 
           {/* Sidebar Column - 1/3 width - Sticky */}
-          <div className="lg:sticky lg:top-6 lg:self-start space-y-6 lg:max-h-screen lg:overflow-y-auto">
+          <div className="lg:sticky lg:top-6 lg:self-start space-y-4 lg:max-h-screen lg:overflow-y-auto">
             {/* Sidebar Top Ad - Desktop only */}
             <div className="hidden lg:block">
               <AdDisplay position="sidebar_top" pageType="homepage" className="flex justify-center" />
@@ -571,9 +562,9 @@ export default function HomePage() {
             {/* Popular Stories */}
             <div className="bg-white shadow-sm p-4">
               <h2 className="text-xl font-bold text-gray-900 mb-4 pb-2 border-b-2 border-red-600">
-                Popular Stories
+                Top Stories
               </h2>
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {popularStories.map((article, index) => (
                   <Link
                     key={article.id}
@@ -586,9 +577,9 @@ export default function HomePage() {
                       </span>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-sm font-semibold text-gray-900 group-hover:text-red-600 line-clamp-3 transition-colors">
-                        {article.title}
-                      </h3>
+                      <p className="text-sm text-gray-700 group-hover:text-red-600 line-clamp-3 transition-colors">
+                        {article.excerpt || article.title}
+                      </p>
                       <p className="text-xs text-gray-500 mt-1">
                         {new Date(article.publishedAt).toLocaleDateString()}
                       </p>
