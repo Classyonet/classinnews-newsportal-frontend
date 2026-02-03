@@ -109,6 +109,20 @@ export default function HomePage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // First, fetch layout settings to get min views threshold
+        let minViews = 20; // default
+        try {
+          const layoutRes = await fetch(`${ADMIN_API_URL}/api/layout-settings/public/all`);
+          if (layoutRes.ok) {
+            const layoutData = await layoutRes.json();
+            if (layoutData.success && layoutData.data?.homepage_most_read_min_views) {
+              minViews = parseInt(layoutData.data.homepage_most_read_min_views) || 20;
+            }
+          }
+        } catch (err) {
+          console.error('Failed to fetch layout settings:', err);
+        }
+
         // Fetch all data in parallel for faster loading
         const [
           trendingRes,
@@ -118,7 +132,7 @@ export default function HomePage() {
         ] = await Promise.all([
           fetch(`${API_URL}/api/articles/trending?limit=6`).then(r => r.json()).catch(() => []),
           fetch(`${API_URL}/api/articles/latest?limit=6`).then(r => r.json()).catch(() => []),
-          fetch(`${API_URL}/api/articles/most-read?limit=5`).then(r => r.json()).catch(() => []),
+          fetch(`${API_URL}/api/articles/most-read?limit=6&minViews=${minViews}`).then(r => r.json()).catch(() => []),
           fetch(`${API_URL}/api/categories`).then(r => r.json()).catch(() => [])
         ]);
 
@@ -366,7 +380,7 @@ export default function HomePage() {
               <AdDisplay position="content_top" pageType="homepage" className="flex justify-center" />
             </div>
 
-            {/* Most Read Section */}
+            {/* Most Read Section - Horizontal Layout */}
             <div className="bg-white shadow-sm p-6">
               <div className="flex items-center justify-between mb-4 pb-2 border-b-2 border-gray-200">
                 <h2 className="text-2xl font-bold text-gray-900">Most Read</h2>
@@ -374,14 +388,14 @@ export default function HomePage() {
                   View All →
                 </Link>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {mostRead.slice(0, 6).map((article) => (
+              <div className="space-y-4">
+                {mostRead.slice(0, 6).map((article, index) => (
                   <Link
                     key={article.id}
                     href={`/articles/${article.slug}`}
-                    className="group"
+                    className={`flex gap-4 group hover:bg-gray-50 p-3 -mx-3 transition-colors ${index % 2 === 0 ? 'flex-row' : 'flex-row-reverse'}`}
                   >
-                    <div className="relative h-48 bg-gray-200 mb-2">
+                    <div className="relative w-32 h-24 md:w-40 md:h-28 flex-shrink-0 bg-gray-200 rounded overflow-hidden">
                       {article.featuredImageUrl && (
                         <Image
                           src={article.featuredImageUrl}
@@ -390,18 +404,29 @@ export default function HomePage() {
                           className="object-cover"
                         />
                       )}
-                      <div className="absolute top-2 left-2">
-                        <span className="bg-red-600 text-white px-2 py-1 text-xs font-bold rounded">
-                          🔥 POPULAR
+                      <div className="absolute top-1 left-1">
+                        <span className="bg-red-600 text-white px-1.5 py-0.5 text-xs font-bold rounded">
+                          #{index + 1}
                         </span>
                       </div>
                     </div>
-                    <h3 className="text-sm font-semibold text-gray-900 group-hover:text-red-600 line-clamp-2 transition-colors">
-                      {article.title}
-                    </h3>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {new Date(article.publishedAt).toLocaleDateString()}
-                    </p>
+                    <div className="flex-1 flex flex-col justify-center min-w-0">
+                      <h3 className="text-sm md:text-base font-semibold text-gray-900 group-hover:text-red-600 line-clamp-2 transition-colors">
+                        {article.title}
+                      </h3>
+                      <p className="text-xs text-gray-500 mt-1 line-clamp-2 hidden md:block">
+                        {article.excerpt}
+                      </p>
+                      <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
+                        <span>{new Date(article.publishedAt).toLocaleDateString()}</span>
+                        {(article as any).viewsCount && (
+                          <>
+                            <span>•</span>
+                            <span className="text-red-600 font-medium">{(article as any).viewsCount.toLocaleString()} views</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
                   </Link>
                 ))}
               </div>
@@ -454,6 +479,86 @@ export default function HomePage() {
                 ))}
               </div>
             </div>
+
+            {/* Category Sections - Popular Categories Below Latest News */}
+            {categories.length > 0 && Object.keys(categoryArticles).length > 0 && (
+              <div className="bg-white shadow-sm p-6">
+                <div className="flex items-center justify-between mb-4 pb-2 border-b-2 border-red-600">
+                  <h2 className="text-2xl font-bold text-gray-900">Popular Categories</h2>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {categories.slice(0, 4).map((category) => {
+                    const articles = categoryArticles[category.slug] || [];
+                    if (articles.length === 0) return null;
+
+                    return (
+                      <div key={category.id} className="border border-gray-200 rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-3 pb-2 border-b border-gray-100">
+                          <h3 className="text-lg font-bold text-gray-900">{category.name}</h3>
+                          <Link
+                            href={`/categories/${category.slug}`}
+                            className="text-red-600 hover:text-red-700 text-xs font-semibold"
+                          >
+                            View All →
+                          </Link>
+                        </div>
+                        <div className="space-y-3">
+                          {articles.slice(0, 3).map((article, idx) => (
+                            <Link
+                              key={article.id}
+                              href={`/articles/${article.slug}`}
+                              className={`flex gap-3 group hover:bg-gray-50 p-2 -mx-2 transition-colors ${idx === 0 ? '' : ''}`}
+                            >
+                              {idx === 0 ? (
+                                <div className="w-full">
+                                  <div className="relative h-32 bg-gray-200 mb-2 rounded overflow-hidden">
+                                    {article.featuredImageUrl && (
+                                      <Image
+                                        src={article.featuredImageUrl}
+                                        alt={article.title}
+                                        fill
+                                        className="object-cover"
+                                      />
+                                    )}
+                                  </div>
+                                  <h4 className="text-sm font-semibold text-gray-900 group-hover:text-red-600 line-clamp-2 transition-colors">
+                                    {article.title}
+                                  </h4>
+                                  <p className="text-xs text-gray-500 mt-1">
+                                    {new Date(article.publishedAt).toLocaleDateString()}
+                                  </p>
+                                </div>
+                              ) : (
+                                <>
+                                  <div className="relative w-20 h-16 flex-shrink-0 bg-gray-200 rounded overflow-hidden">
+                                    {article.featuredImageUrl && (
+                                      <Image
+                                        src={article.featuredImageUrl}
+                                        alt={article.title}
+                                        fill
+                                        className="object-cover"
+                                      />
+                                    )}
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <h4 className="text-sm font-semibold text-gray-900 group-hover:text-red-600 line-clamp-2 transition-colors">
+                                      {article.title}
+                                    </h4>
+                                    <p className="text-xs text-gray-500 mt-1">
+                                      {new Date(article.publishedAt).toLocaleDateString()}
+                                    </p>
+                                  </div>
+                                </>
+                              )}
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Sidebar Column - 1/3 width - Sticky */}
@@ -493,21 +598,6 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Trending Topics Widget */}
-            <div className="bg-gradient-to-br from-red-50 to-orange-50 border border-red-100 rounded-lg p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <span className="text-red-600">🔥</span> Trending Topics
-              </h3>
-              <div className="space-y-3">
-                {['Breaking News', 'Politics', 'Technology', 'Sports', 'Entertainment'].map((topic, i) => (
-                  <Link key={i} href={`/category/${topic.toLowerCase()}`} className="flex items-center justify-between p-2 bg-white rounded hover:shadow-md transition-all group">
-                    <span className="text-sm font-semibold text-gray-700 group-hover:text-red-600">{topic}</span>
-                    <span className="text-xs text-gray-500">#{i + 1}</span>
-                  </Link>
-                ))}
-              </div>
-            </div>
-
             {/* Newsletter Signup */}
             <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-lg p-6">
               <h3 className="text-lg font-bold text-gray-900 mb-2">📧 Stay Updated</h3>
@@ -542,29 +632,6 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Quick Stats Widget */}
-            <div className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-100 rounded-lg p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <span>📊</span> Quick Stats
-              </h3>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-semibold text-gray-700">Today's Articles</span>
-                  <span className="text-xl font-bold text-green-600">{latestNews.length}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-semibold text-gray-700">Total Views</span>
-                  <span className="text-xl font-bold text-green-600">
-                    {mostRead.reduce((acc, article) => acc + ((article as any).viewCount || 0), 0).toLocaleString()}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-semibold text-gray-700">Categories</span>
-                  <span className="text-xl font-bold text-green-600">{Object.keys(categoryArticles).length}</span>
-                </div>
-              </div>
-            </div>
-
             {/* Sidebar Bottom Ad - Desktop only */}
             <div className="hidden lg:block">
               <AdDisplay position="sidebar_bottom" pageType="homepage" className="flex justify-center" />
@@ -572,59 +639,11 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Full Width Ad Banner - Before Categories (Contained) */}
+        {/* Full Width Ad Banner - Bottom (Contained) */}
         <div className="py-4 mt-8">
           <div className="flex justify-center max-w-full overflow-hidden">
             <AdDisplay position="content_bottom" pageType="homepage" className="" />
           </div>
-        </div>
-
-        {/* Category Sections - Top 4 in Columns */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mt-8">
-          {categories.slice(0, 4).map((category) => {
-            const articles = categoryArticles[category.slug] || [];
-            if (articles.length === 0) return null;
-
-            return (
-              <div key={category.id} className="bg-white shadow-sm p-4">
-                <div className="flex items-center justify-between mb-4 pb-2 border-b-2 border-red-600">
-                  <h2 className="text-lg font-bold text-gray-900">{category.name}</h2>
-                  <Link
-                    href={`/categories/${category.slug}`}
-                    className="text-red-600 hover:text-red-700 text-xs font-semibold"
-                  >
-                    View All →
-                  </Link>
-                </div>
-                <div className="space-y-4">
-                  {articles.map((article) => (
-                    <Link
-                      key={article.id}
-                      href={`/articles/${article.slug}`}
-                      className="block group"
-                    >
-                      <div className="relative h-32 bg-gray-200 mb-2">
-                        {article.featuredImageUrl && (
-                          <Image
-                            src={article.featuredImageUrl}
-                            alt={article.title}
-                            fill
-                            className="object-cover"
-                          />
-                        )}
-                      </div>
-                      <h3 className="text-sm font-semibold text-gray-900 group-hover:text-red-600 line-clamp-2 mb-1 transition-colors">
-                        {article.title}
-                      </h3>
-                      <p className="text-xs text-gray-500">
-                        {new Date(article.publishedAt).toLocaleDateString()}
-                      </p>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
         </div>
 
 
