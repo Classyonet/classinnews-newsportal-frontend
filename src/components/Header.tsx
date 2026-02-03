@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Search, Youtube, Facebook, User, Settings, LogOut, ChevronDown } from 'lucide-react'
+import { Search, Youtube, Facebook, User, Settings, LogOut, ChevronDown, Menu, X } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import AdDisplay from './AdDisplay'
@@ -10,6 +10,7 @@ interface BrandingSettings {
   siteName: string
   siteDescription: string
   site_logo_url: string
+  site_mobile_logo_url: string
   site_favicon_url: string
 }
 
@@ -18,15 +19,29 @@ export default function Header() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [showUserMenu, setShowUserMenu] = useState(false)
+  const [showMobileMenu, setShowMobileMenu] = useState(false)
+  const [showMobileSearch, setShowMobileSearch] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
   const [branding, setBranding] = useState<BrandingSettings>({
     siteName: 'ClassinNews',
     siteDescription: 'Your Source for Quality News',
     site_logo_url: '',
+    site_mobile_logo_url: '',
     site_favicon_url: ''
   })
   const router = useRouter()
   const pathname = usePathname()
+
+  // Check for mobile viewport
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   // Check auth status
   const checkAuthStatus = () => {
@@ -283,47 +298,143 @@ export default function Header() {
 
       {/* MIDDLE HEADER - Logo | Ads Banner */}
       <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 py-4">
+        <div className="max-w-7xl mx-auto px-4 py-3 md:py-4">
           <div className="flex items-center justify-between">
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setShowMobileMenu(!showMobileMenu)}
+              className="md:hidden p-2 text-gray-700 hover:text-red-600 transition-colors"
+            >
+              {showMobileMenu ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
+
             {/* Left - Logo */}
-            <Link href="/" className="flex items-center">
+            <Link href="/" className="flex items-center flex-1 md:flex-none justify-center md:justify-start">
               <div className="relative">
-                {branding.site_logo_url ? (
+                {/* Mobile Logo - Shows on mobile only */}
+                {isMobile && branding.site_mobile_logo_url ? (
+                  <img 
+                    src={branding.site_mobile_logo_url}
+                    alt={branding.siteName}
+                    className="h-10 w-auto max-w-[150px] object-contain"
+                    onError={(e) => {
+                      console.error('Mobile logo failed to load');
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                    }}
+                  />
+                ) : branding.site_logo_url ? (
+                  /* Desktop Logo */
                   <div className="flex flex-col">
                     <img 
-                      src={branding.site_logo_url.startsWith('http') ? branding.site_logo_url : branding.site_logo_url}
+                      src={branding.site_logo_url}
                       alt={branding.siteName}
-                      className="h-12 w-auto max-w-[250px] object-contain"
+                      className="h-10 md:h-12 w-auto max-w-[180px] md:max-w-[250px] object-contain"
                       onError={(e) => {
                         console.error('Logo failed to load:', branding.site_logo_url);
-                        // Hide broken image and show fallback
                         const target = e.target as HTMLImageElement;
                         target.style.display = 'none';
                       }}
                     />
-                    {branding.siteDescription && (
+                    {!isMobile && branding.siteDescription && (
                       <p className="text-xs text-gray-500 mt-1">{branding.siteDescription}</p>
                     )}
                   </div>
                 ) : (
                   <div className="flex items-center">
-                    <span className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight">
+                    <span className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black tracking-tight">
                       <span className="text-gray-900">Classy</span>
                       <span className="text-red-600">News</span>
                     </span>
                     {/* Red Triangle */}
-                    <div className="ml-1 sm:ml-2 w-0 h-0 border-l-[12px] sm:border-l-[16px] lg:border-l-[20px] border-l-transparent border-t-[24px] sm:border-t-[30px] lg:border-t-[35px] border-t-red-600 border-r-[12px] sm:border-r-[16px] lg:border-r-[20px] border-r-transparent transform rotate-90"></div>
-                    <p className="text-xs text-gray-500 mt-1 absolute -bottom-5 left-0">{branding.siteDescription}</p>
+                    <div className="ml-1 sm:ml-2 w-0 h-0 border-l-[8px] sm:border-l-[12px] md:border-l-[16px] lg:border-l-[20px] border-l-transparent border-t-[16px] sm:border-t-[24px] md:border-t-[30px] lg:border-t-[35px] border-t-red-600 border-r-[8px] sm:border-r-[12px] md:border-r-[16px] lg:border-r-[20px] border-r-transparent transform rotate-90"></div>
+                    {!isMobile && (
+                      <p className="text-xs text-gray-500 mt-1 absolute -bottom-5 left-0">{branding.siteDescription}</p>
+                    )}
                   </div>
                 )}
               </div>
             </Link>
 
-            {/* Right - Header Banner Ad (beside logo) */}
+            {/* Mobile Search Toggle */}
+            <button
+              onClick={() => setShowMobileSearch(!showMobileSearch)}
+              className="md:hidden p-2 text-gray-700 hover:text-red-600 transition-colors"
+            >
+              <Search className="h-5 w-5" />
+            </button>
+
+            {/* Right - Header Banner Ad (beside logo) - Desktop only */}
             <div className="hidden lg:block max-w-[728px]">
               <AdDisplay position="header_banner" pageType="homepage" className="flex justify-center" />
             </div>
           </div>
+
+          {/* Mobile Search Bar */}
+          {showMobileSearch && (
+            <div className="md:hidden mt-3 pb-2">
+              <form onSubmit={handleSearch} className="relative">
+                <input
+                  type="text"
+                  placeholder="Search news..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-red-600"
+                  autoFocus
+                />
+                <button
+                  type="submit"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-red-600 hover:bg-red-700 rounded p-1.5 transition"
+                >
+                  <Search className="h-4 w-4 text-white" />
+                </button>
+              </form>
+            </div>
+          )}
+
+          {/* Mobile Menu */}
+          {showMobileMenu && (
+            <div className="md:hidden mt-3 pb-3 border-t border-gray-200 pt-3">
+              <nav className="flex flex-col space-y-2">
+                <Link href="/" onClick={() => setShowMobileMenu(false)} className="px-3 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-lg font-medium transition-colors">
+                  Home
+                </Link>
+                <Link href="/about" onClick={() => setShowMobileMenu(false)} className="px-3 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-lg font-medium transition-colors">
+                  About Us
+                </Link>
+                <Link href="/contact" onClick={() => setShowMobileMenu(false)} className="px-3 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-lg font-medium transition-colors">
+                  Contact
+                </Link>
+                <Link href="/advertise" onClick={() => setShowMobileMenu(false)} className="px-3 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-lg font-medium transition-colors">
+                  Advertise
+                </Link>
+                <div className="border-t border-gray-200 pt-2 mt-2">
+                  {!isAuthenticated ? (
+                    <>
+                      <Link href="/login" onClick={() => setShowMobileMenu(false)} className="block px-3 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-lg font-medium transition-colors">
+                        Login
+                      </Link>
+                      <Link href="/register" onClick={() => setShowMobileMenu(false)} className="block px-3 py-2 bg-red-600 text-white rounded-lg font-semibold text-center mt-2 hover:bg-red-700 transition-colors">
+                        Register
+                      </Link>
+                    </>
+                  ) : (
+                    <>
+                      <Link href="/dashboard" onClick={() => setShowMobileMenu(false)} className="block px-3 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-lg font-medium transition-colors">
+                        My Dashboard
+                      </Link>
+                      <button
+                        onClick={() => { handleLogout(); setShowMobileMenu(false); }}
+                        className="w-full text-left px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg font-medium transition-colors"
+                      >
+                        Logout
+                      </button>
+                    </>
+                  )}
+                </div>
+              </nav>
+            </div>
+          )}
         </div>
       </div>
 

@@ -109,116 +109,77 @@ export default function HomePage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch homepage settings (public endpoint)
-        try {
-          const settingsRes = await fetch(`${ADMIN_API_URL}/api/settings/public/homepage`);
-          if (!settingsRes.ok) {
-            throw new Error(`Failed to fetch settings: ${settingsRes.status}`);
-          }
-          const settingsData = await settingsRes.json();
-          const arr = Array.isArray(settingsData.data) ? settingsData.data : [];
-          const settingsMap: Record<string, string> = {};
-          arr.forEach((s: any) => settingsMap[s.key] = s.value);
+        // Fetch all data in parallel for faster loading
+        const [
+          trendingRes,
+          latestRes,
+          mostReadRes,
+          categoriesRes
+        ] = await Promise.all([
+          fetch(`${API_URL}/api/articles/trending?limit=6`).then(r => r.json()).catch(() => []),
+          fetch(`${API_URL}/api/articles/latest?limit=6`).then(r => r.json()).catch(() => []),
+          fetch(`${API_URL}/api/articles/most-read?limit=5`).then(r => r.json()).catch(() => []),
+          fetch(`${API_URL}/api/categories`).then(r => r.json()).catch(() => [])
+        ]);
 
-          const enabled = settingsMap['homepage_carousel_enabled'] === 'true';
-          const interval = Number(settingsMap['homepage_carousel_interval'] || '5');
-          const effect = settingsMap['homepage_carousel_effect'] || 'cube';
-          const showTitle = settingsMap['homepage_carousel_show_title'] !== 'false';
-
-          setCarouselSettings({ enabled, interval, effect, showTitle });
-
-          // If enabled, fetch random articles for carousel
-          if (enabled) {
-            try {
-              const articlesRes = await fetch(`${API_URL}/api/articles/random?limit=6`);
-              if (!articlesRes.ok) {
-                throw new Error(`Failed to fetch articles: ${articlesRes.status}`);
-              }
-              const articles = await articlesRes.json();
-              const arr = Array.isArray(articles) ? articles : [];
-              setCarouselArticles(arr);
-            } catch (err) {
-              console.error('Failed to load carousel articles:', err);
-              setCarouselArticles([]);
-            }
-          } else {
-            setCarouselArticles([]);
-          }
-        } catch (err) {
-          console.error('Failed to load homepage settings:', err);
-          setCarouselSettings({
-            enabled: false,
-            interval: 5,
-            effect: 'cube',
-            showTitle: true
-          });
+        // Process trending - first one is featured, rest are popular
+        const trendingArticles = Array.isArray(trendingRes) ? trendingRes : [];
+        if (trendingArticles.length > 0) {
+          setFeaturedArticle(trendingArticles[0]);
+          setPopularStories(trendingArticles.slice(1, 6));
         }
 
-        // Fetch featured article (first trending)
-        fetch(`${API_URL}/api/articles/trending?limit=1`)
-          .then(res => res.json())
-          .then(data => {
-            // API returns array directly
-            const articles = Array.isArray(data) ? data : [];
-            setFeaturedArticle(articles[0] || null);
-          })
-          .catch(err => console.error('Error fetching featured:', err));
+        // Process latest news
+        const latestArticles = Array.isArray(latestRes) ? latestRes : [];
+        setLatestNews(latestArticles);
 
-        // Fetch popular stories (trending 2-6)
-        fetch(`${API_URL}/api/articles/trending?limit=6`)
-          .then(res => res.json())
-          .then(data => {
-            // API returns array directly
-            const articles = Array.isArray(data) ? data : [];
-            setPopularStories(Array.isArray(articles) && articles.length > 1 ? articles.slice(1, 6) : []);
-          })
-          .catch(err => console.error('Error fetching popular:', err));
+        // Process most read
+        const mostReadArticles = Array.isArray(mostReadRes) ? mostReadRes : [];
+        setMostRead(mostReadArticles);
 
-        // Fetch latest news
-        fetch(`${API_URL}/api/articles/latest?limit=6`)
-          .then(res => res.json())
-          .then(data => {
-            // API returns array directly
-            const articles = Array.isArray(data) ? data : [];
-            setLatestNews(articles);
-          })
-          .catch(err => console.error('Error fetching latest:', err));
+        // Process categories
+        const cats = Array.isArray(categoriesRes) ? categoriesRes : [];
+        setCategories(cats);
 
-        // Fetch most read (top 5 by view count)
-        fetch(`${API_URL}/api/articles/most-read?limit=5`)
-          .then(res => res.json())
-          .then(data => {
-            // API returns array directly
-            const articles = Array.isArray(data) ? data : [];
-            setMostRead(articles);
-          })
-          .catch(err => console.error('Error fetching most read:', err));
+        // Fetch articles for first 4 categories in parallel
+        if (cats.length > 0) {
+          const topCategories = cats.slice(0, 4);
+          const categoryPromises = topCategories.map((cat: any) =>
+            fetch(`${API_URL}/api/categories/${cat.slug}?limit=4`)
+              .then(r => r.json())
+              .then(data => ({ slug: cat.slug, articles: data.articles || [] }))
+              .catch(() => ({ slug: cat.slug, articles: [] }))
+          );
 
-        // Fetch all categories first
-        fetch(`${API_URL}/api/categories`)
-          .then(res => res.json())
-          .then(data => {
-            // API returns array of categories directly
-            const cats = Array.isArray(data) ? data : [];
-            console.log('Loaded categories:', cats);
-            setCategories(cats);
-
-            // Fetch articles for first 4 categories
-            const topCategories = cats.slice(0, 4);
-            topCategories.forEach((cat: any) => {
-              fetch(`${API_URL}/api/categories/${cat.slug}?limit=4`)
-                .then(res => res.json())
-                .then(data => {
-                  // Category endpoint returns { category, articles, pagination }
-                  setCategoryArticles(prev => ({ ...prev, [cat.slug]: data.articles || [] }));
-                })
-                .catch(err => console.error(`Error fetching ${cat.slug}:`, err));
-            });
-          })
-          .catch(err => {
-            console.error('Error fetching categories:', err);
-            setCategories([]);
+          const categoryResults = await Promise.all(categoryPromises);
+          const catArticlesMap: Record<string, Article[]> = {};
+          categoryResults.forEach(result => {
+            catArticlesMap[result.slug] = result.articles;
           });
+          setCategoryArticles(catArticlesMap);
+        }
+
+        // Also fetch carousel settings in parallel if not already loaded
+        try {
+          const settingsRes = await fetch(`${ADMIN_API_URL}/api/settings/public/homepage`);
+          if (settingsRes.ok) {
+            const settingsData = await settingsRes.json();
+            const arr = Array.isArray(settingsData.data) ? settingsData.data : [];
+            const settingsMap: Record<string, string> = {};
+            arr.forEach((s: any) => settingsMap[s.key] = s.value);
+
+            const enabled = settingsMap['homepage_carousel_enabled'] === 'true';
+            if (enabled && carouselArticles.length === 0) {
+              const articlesRes = await fetch(`${API_URL}/api/articles/random?limit=6`);
+              if (articlesRes.ok) {
+                const articles = await articlesRes.json();
+                setCarouselArticles(Array.isArray(articles) ? articles : []);
+              }
+            }
+          }
+        } catch (err) {
+          console.error('Failed to load carousel settings:', err);
+        }
       } catch (error) {
         console.error('Error loading data:', error);
       } finally {
