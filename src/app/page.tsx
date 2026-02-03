@@ -476,78 +476,57 @@ export default function HomePage() {
 
             {/* Category Sections - Top 3 Categories with Most Stories */}
             {categories.length > 0 && Object.keys(categoryArticles).length > 0 && (
-              <div className="bg-white shadow-sm p-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {categories.slice(0, 3).map((category) => {
+              <div className="space-y-4">
+                {/* Sort categories by article count (most articles first) and take top 3 */}
+                {[...categories]
+                  .sort((a: any, b: any) => (b._count?.articles || 0) - (a._count?.articles || 0))
+                  .slice(0, 3)
+                  .map((category: any) => {
                     const articles = categoryArticles[category.slug] || [];
                     if (articles.length === 0) return null;
 
                     return (
-                      <div key={category.id} className="border border-gray-200 rounded-lg p-4">
-                        <div className="flex items-center justify-between mb-3 pb-2 border-b border-gray-100">
-                          <h3 className="text-lg font-bold text-gray-900">{category.name}</h3>
+                      <div key={category.id} className="bg-white shadow-sm p-4">
+                        {/* Category Heading */}
+                        <div className="flex items-center justify-between mb-3 pb-2 border-b-2 border-red-600">
+                          <h2 className="text-xl font-bold text-gray-900">{category.name}</h2>
                           <Link
-                            href={`/categories/${category.slug}`}
-                            className="text-red-600 hover:text-red-700 text-xs font-semibold"
+                            href={`/category/${category.slug}`}
+                            className="text-red-600 hover:text-red-700 text-sm font-semibold"
                           >
-                            View All →
+                            More →
                           </Link>
                         </div>
-                        <div className="space-y-3">
-                          {articles.slice(0, 3).map((article, idx) => (
+                        {/* Top 3 Articles */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          {articles.slice(0, 3).map((article: Article) => (
                             <Link
                               key={article.id}
                               href={`/articles/${article.slug}`}
-                              className={`flex gap-3 group hover:bg-gray-50 p-2 -mx-2 transition-colors ${idx === 0 ? '' : ''}`}
+                              className="group"
                             >
-                              {idx === 0 ? (
-                                <div className="w-full">
-                                  <div className="relative h-32 bg-gray-200 mb-2 rounded overflow-hidden">
-                                    {article.featuredImageUrl && (
-                                      <Image
-                                        src={article.featuredImageUrl}
-                                        alt={article.title}
-                                        fill
-                                        className="object-cover"
-                                      />
-                                    )}
-                                  </div>
-                                  <h4 className="text-sm font-semibold text-gray-900 group-hover:text-red-600 line-clamp-2 transition-colors">
-                                    {article.title}
-                                  </h4>
-                                  <p className="text-xs text-gray-500 mt-1">
-                                    {new Date(article.publishedAt).toLocaleDateString()}
-                                  </p>
-                                </div>
-                              ) : (
-                                <>
-                                  <div className="relative w-20 h-16 flex-shrink-0 bg-gray-200 rounded overflow-hidden">
-                                    {article.featuredImageUrl && (
-                                      <Image
-                                        src={article.featuredImageUrl}
-                                        alt={article.title}
-                                        fill
-                                        className="object-cover"
-                                      />
-                                    )}
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <h4 className="text-sm font-semibold text-gray-900 group-hover:text-red-600 line-clamp-2 transition-colors">
-                                      {article.title}
-                                    </h4>
-                                    <p className="text-xs text-gray-500 mt-1">
-                                      {new Date(article.publishedAt).toLocaleDateString()}
-                                    </p>
-                                  </div>
-                                </>
-                              )}
+                              <div className="relative h-32 bg-gray-200 rounded overflow-hidden mb-2">
+                                {article.featuredImageUrl && (
+                                  <Image
+                                    src={article.featuredImageUrl}
+                                    alt={article.title}
+                                    fill
+                                    className="object-cover group-hover:scale-105 transition-transform"
+                                  />
+                                )}
+                              </div>
+                              <h3 className="text-sm font-semibold text-gray-900 group-hover:text-red-600 line-clamp-2 transition-colors">
+                                {article.title}
+                              </h3>
+                              <p className="text-xs text-gray-500 mt-1">
+                                {new Date(article.publishedAt).toLocaleDateString()}
+                              </p>
                             </Link>
                           ))}
                         </div>
                       </div>
                     );
                   })}
-                </div>
               </div>
             )}
           </div>

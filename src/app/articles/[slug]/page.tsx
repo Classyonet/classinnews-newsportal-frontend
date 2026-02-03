@@ -333,7 +333,7 @@ export default function ArticlePage() {
               {/* Category Badge - Enhanced Styling */}
               {article.category ? (
                 <Link
-                  href={`/categories/${article.category.slug}`}
+                  href={`/category/${article.category.slug}`}
                   className="inline-flex items-center gap-2 bg-gradient-to-r from-red-600 to-red-700 text-white px-4 py-2 text-sm font-bold uppercase mb-4 rounded-full hover:from-red-700 hover:to-red-800 transition-all shadow-md hover:shadow-lg transform hover:scale-105"
                 >
                   <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
