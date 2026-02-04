@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { Search, Youtube, Facebook, User, Settings, LogOut, ChevronDown, Menu, X } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import AdDisplay from './AdDisplay'
 
@@ -23,6 +23,8 @@ export default function Header() {
   const [showMobileSearch, setShowMobileSearch] = useState(false)
   const [mounted, setMounted] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
+  const [hideHeader, setHideHeader] = useState(false)
+  const lastScrollY = useRef(0)
   const [branding, setBranding] = useState<BrandingSettings>({
     siteName: 'ClassinNews',
     siteDescription: 'Your Source for Quality News',
@@ -42,6 +44,35 @@ export default function Header() {
     window.addEventListener('resize', checkMobile)
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
+
+  // Handle scroll to hide/show header on mobile
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!isMobile) {
+        setHideHeader(false)
+        return
+      }
+      
+      const currentScrollY = window.scrollY
+      const scrollDelta = currentScrollY - lastScrollY.current
+      
+      // Only trigger if scrolled more than 10px
+      if (Math.abs(scrollDelta) > 10) {
+        // Scrolling down (moving down the page) - hide header
+        if (scrollDelta > 0 && currentScrollY > 100) {
+          setHideHeader(true)
+        }
+        // Scrolling up (moving up the page) - show header
+        else if (scrollDelta < 0) {
+          setHideHeader(false)
+        }
+        lastScrollY.current = currentScrollY
+      }
+    }
+
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [isMobile])
 
   // Check auth status
   const checkAuthStatus = () => {
@@ -137,8 +168,10 @@ export default function Header() {
         </div>
       </div>
 
-      {/* TOP HEADER - Date | Quick Links | Social + Search */}
-      <div className="bg-gray-100 border-b border-gray-300">
+      {/* TOP HEADER - Date | Quick Links | Social + Search - Hideable on mobile scroll */}
+      <div className={`bg-gray-100 border-b border-gray-300 transition-all duration-300 ease-in-out ${
+        hideHeader && isMobile ? 'max-h-0 overflow-hidden opacity-0 py-0 border-0' : 'max-h-20 opacity-100'
+      }`}>
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between py-2 text-sm">
             {/* Left - Date */}

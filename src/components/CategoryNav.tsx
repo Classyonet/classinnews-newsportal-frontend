@@ -15,13 +15,59 @@ interface Category {
   icon: string
 }
 
-export default function CategoryNav() {
+interface CategoryNavProps {
+  hideOnScroll?: boolean
+}
+
+export default function CategoryNav({ hideOnScroll: hideOnScrollProp = false }: CategoryNavProps) {
   const pathname = usePathname()
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
   const [showLeftArrow, setShowLeftArrow] = useState(false)
   const [showRightArrow, setShowRightArrow] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+  const [hideOnScroll, setHideOnScroll] = useState(false)
+  const lastScrollY = useRef(0)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
+
+  // Check for mobile viewport
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
+  // Handle scroll to hide/show categories on mobile
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!isMobile) {
+        setHideOnScroll(false)
+        return
+      }
+      
+      const currentScrollY = window.scrollY
+      const scrollDelta = currentScrollY - lastScrollY.current
+      
+      // Only trigger if scrolled more than 10px
+      if (Math.abs(scrollDelta) > 10) {
+        // Scrolling down - hide
+        if (scrollDelta > 0 && currentScrollY > 100) {
+          setHideOnScroll(true)
+        }
+        // Scrolling up - show
+        else if (scrollDelta < 0) {
+          setHideOnScroll(false)
+        }
+        lastScrollY.current = currentScrollY
+      }
+    }
+
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [isMobile])
 
   useEffect(() => {
     // Fetch categories from API
@@ -89,9 +135,14 @@ export default function CategoryNav() {
     return text.slice(0, maxLength - 1) + '…'
   }
 
+  // Hide class for mobile scroll
+  const hideClass = hideOnScroll && isMobile 
+    ? 'max-h-0 overflow-hidden opacity-0 py-0 border-0' 
+    : 'max-h-20 opacity-100'
+
   if (loading) {
     return (
-      <nav className="bg-white border-b border-gray-200">
+      <nav className={`bg-white border-b border-gray-200 transition-all duration-300 ease-in-out ${hideClass}`}>
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center gap-2 py-2">
             <span className="text-gray-400 text-sm">Loading categories...</span>
@@ -103,7 +154,7 @@ export default function CategoryNav() {
 
   if (categories.length === 0) {
     return (
-      <nav className="bg-white border-b border-gray-200">
+      <nav className={`bg-white border-b border-gray-200 transition-all duration-300 ease-in-out ${hideClass}`}>
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center gap-2 py-2">
             <span className="text-gray-400 text-sm">No categories available</span>
@@ -114,7 +165,7 @@ export default function CategoryNav() {
   }
 
   return (
-    <nav className="bg-white border-b border-gray-200">
+    <nav className={`bg-white border-b border-gray-200 transition-all duration-300 ease-in-out ${hideClass}`}>
       <div className="max-w-7xl mx-auto px-2 md:px-4 relative">
         {/* Left Arrow */}
         {showLeftArrow && (
