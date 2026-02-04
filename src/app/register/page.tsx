@@ -254,6 +254,7 @@ export default function RegisterPage() {
                   Continue with Google
                 </button>
                 
+                {/* Facebook Login - Coming Soon
                 <button 
                   type="button"
                   onClick={handleFacebookRegister}
@@ -265,6 +266,7 @@ export default function RegisterPage() {
                   </svg>
                   Continue with Facebook
                 </button>
+                */}
                 
                 <button 
                   type="button"

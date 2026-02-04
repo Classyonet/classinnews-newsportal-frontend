@@ -425,6 +425,7 @@ export default function LoginPage() {
                     Continue with Google
                   </button>
 
+                  {/* Facebook Login - Coming Soon
                   <button
                     type="button"
                     onClick={handleFacebookLogin}
@@ -436,6 +437,7 @@ export default function LoginPage() {
                     </svg>
                     Continue with Facebook
                   </button>
+                  */
 
                   <button
                     type="button"
