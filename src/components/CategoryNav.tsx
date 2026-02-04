@@ -53,12 +53,12 @@ export default function CategoryNav({ hideOnScroll: hideOnScrollProp = false }: 
       
       // Only trigger if scrolled more than 10px
       if (Math.abs(scrollDelta) > 10) {
-        // Scrolling down - hide
-        if (scrollDelta > 0 && currentScrollY > 100) {
+        // Scrolling up (finger moving down) - hide
+        if (scrollDelta < 0 && currentScrollY > 50) {
           setHideOnScroll(true)
         }
-        // Scrolling up - show
-        else if (scrollDelta < 0) {
+        // Scrolling down (finger moving up) - show
+        else if (scrollDelta > 0) {
           setHideOnScroll(false)
         }
         lastScrollY.current = currentScrollY

@@ -58,12 +58,12 @@ export default function Header() {
       
       // Only trigger if scrolled more than 10px
       if (Math.abs(scrollDelta) > 10) {
-        // Scrolling down (moving down the page) - hide header
-        if (scrollDelta > 0 && currentScrollY > 100) {
+        // Scrolling up (finger moving down, content moving up) - hide header
+        if (scrollDelta < 0 && currentScrollY > 50) {
           setHideHeader(true)
         }
-        // Scrolling up (moving up the page) - show header
-        else if (scrollDelta < 0) {
+        // Scrolling down (finger moving up, content moving down) - show header
+        else if (scrollDelta > 0) {
           setHideHeader(false)
         }
         lastScrollY.current = currentScrollY
