@@ -74,6 +74,13 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm">
+          <div className="flex flex-wrap justify-center gap-4 mb-4">
+            <Link href="/privacy-policy" className="hover:text-primary-400">Privacy Policy</Link>
+            <span className="text-gray-600">•</span>
+            <Link href="/terms" className="hover:text-primary-400">Terms of Service</Link>
+            <span className="text-gray-600">•</span>
+            <Link href="/data-deletion" className="hover:text-primary-400">Data Deletion</Link>
+          </div>
           <p>&copy; {new Date().getFullYear()} ClassinNews. All rights reserved.</p>
         </div>
       </div>
