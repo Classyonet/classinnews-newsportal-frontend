@@ -34,6 +34,7 @@ export default function RegisterForm() {
   const [mobileNumber, setMobileNumber] = useState("")
   const [otp, setOtp] = useState("")
   const [otpSent, setOtpSent] = useState(false)
+  const [otpLoading, setOtpLoading] = useState(false)
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
@@ -55,6 +56,69 @@ export default function RegisterForm() {
       })
       .catch(console.error)
   }, [])
+
+  const handleSendOTP = async () => {
+    if (!mobileNumber) {
+      setError("Please enter your mobile number")
+      return
+    }
+    setOtpLoading(true)
+    setError("")
+    try {
+      const res = await fetch(API_URL + "/auth/send-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phoneNumber: mobileNumber, purpose: "register" })
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data.error || data.message || "Failed to send OTP")
+      }
+      setOtpSent(true)
+    } catch (err: any) {
+      setError(err.message || "Failed to send OTP")
+    } finally {
+      setOtpLoading(false)
+    }
+  }
+
+  const handleVerifyPhoneOtp = async () => {
+    if (!otp || otp.length !== 6) {
+      setError("Please enter a valid 6-digit OTP")
+      return
+    }
+    if (!username) {
+      setError("Please enter a username")
+      return
+    }
+    setLoading(true)
+    setError("")
+    try {
+      const res = await fetch(API_URL + "/auth/verify-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phoneNumber: mobileNumber, otp, purpose: "register", username })
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data.error || data.message || "OTP verification failed")
+      }
+      const token = data.token || data.data?.token || ""
+      const user = data.user || data.data?.user || {}
+      localStorage.setItem("reader_token", token)
+      localStorage.setItem("reader_user", JSON.stringify(user))
+      setShowSuccess(true)
+      setSuccessName(user.username || "Reader")
+      setTimeout(() => {
+        setShowSuccess(false)
+        router.push("/")
+      }, 3000)
+    } catch (err: any) {
+      setError(err.message || "OTP verification failed")
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleGoogleRegister = () => {
     window.location.href = API_URL + "/auth/google"
@@ -86,18 +150,11 @@ export default function RegisterForm() {
       }
     }
 
-    // Validation for mobile registration
+    // Mobile registration uses OTP verify flow
     if (regMethod === "mobile") {
-      if (!otpSent) {
-        setError("Please send and verify OTP first")
-        setLoading(false)
-        return
-      }
-      if (!otp || otp.length !== 6) {
-        setError("Please enter valid 6-digit OTP")
-        setLoading(false)
-        return
-      }
+      await handleVerifyPhoneOtp()
+      setLoading(false)
+      return
     }
 
     try {
@@ -112,12 +169,6 @@ export default function RegisterForm() {
           username,
           password,
           authProvider: "email"
-        };
-      } else if (regMethod === "mobile") {
-        requestBody = {
-          phoneNumber: mobileNumber,
-          username,
-          authProvider: "phone"
         };
       } else {
         setError("Social login not yet implemented")
@@ -283,10 +334,11 @@ export default function RegisterForm() {
                   {!otpSent ? (
                     <button
                       type="button"
-                      onClick={() => setOtpSent(true)}
-                      className="w-full bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
+                      onClick={handleSendOTP}
+                      disabled={otpLoading}
+                      className="w-full bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      Send OTP
+                      {otpLoading ? "Sending OTP..." : "Send OTP"}
                     </button>
                   ) : (
                     <>
@@ -334,7 +386,7 @@ export default function RegisterForm() {
 
                       <button
                         type="button"
-                        onClick={() => setOtpSent(false)}
+                        onClick={() => { setOtpSent(false); setOtp(""); handleSendOTP(); }}
                         className="w-full text-gray-600 hover:text-gray-800 text-sm"
                       >
                         Resend OTP

@@ -97,11 +97,57 @@ export default function LoginForm() {
     setLoading(true);
     setError("");
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const res = await fetch(API_URL + "/auth/send-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phoneNumber, purpose: "login" }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || data.message || "Failed to send OTP");
       setOtpSent(true);
-      alert("OTP sent to your phone number!");
+      setError("");
+      setResendSuccess(false);
+      // Show OTP message
+      setErrorCode("");
+      alert(data.message || "OTP sent!");
     } catch (err: any) {
       setError(err.message || "Failed to send OTP");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyPhoneOtp = async () => {
+    if (!phoneNumber || !otp) {
+      setError("Phone number and OTP are required");
+      return;
+    }
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch(API_URL + "/auth/verify-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phoneNumber, otp, purpose: "login" }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || data.message || "OTP verification failed");
+
+      const token = data.token || "";
+      const user = data.user || {};
+
+      localStorage.setItem("reader_token", token);
+      localStorage.setItem("reader_user", JSON.stringify(user));
+
+      setSuccessName(user.username || "Reader");
+      setShowSuccess(true);
+
+      setTimeout(() => {
+        setShowSuccess(false);
+        window.location.href = "/";
+      }, 2500);
+    } catch (err: any) {
+      setError(err.message || "OTP verification failed");
     } finally {
       setLoading(false);
     }
@@ -131,8 +177,8 @@ export default function LoginForm() {
           setLoading(false);
           return;
         }
-        requestBody = { phoneNumber, otp, authProvider: "phone" };
-        setError("OTP verification is not yet implemented on the backend. Please use email login.");
+        // Use the dedicated OTP verification endpoint
+        await handleVerifyPhoneOtp();
         setLoading(false);
         return;
       } else if (loginMethod === "social") {
