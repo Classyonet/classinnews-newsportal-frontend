@@ -37,7 +37,9 @@ export default function AdDisplay({ position, pageType, className = '' }: AdDisp
     try {
       console.log(`[AdDisplay] Fetching ads for ${pageType} - position: ${position}`);
       const response = await fetch(`${ADMIN_API_URL}/api/ads/active/${pageType}`);
-      const ads: AdPlacement[] = await response.json();
+      const result = await response.json();
+      // Backend returns { success: true, data: [...] } — unwrap properly
+      const ads: AdPlacement[] = Array.isArray(result) ? result : (result.data || []);
       console.log(`[AdDisplay] Received ${ads.length} active ads for ${pageType}:`, ads);
       
       // Find the ad for this specific position
