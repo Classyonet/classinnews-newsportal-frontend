@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Mail, Lock, AlertCircle, Phone } from "lucide-react";
+import { ArrowLeft, Mail, Lock, AlertCircle } from "lucide-react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3004";
 const API_URL = API_BASE + "/api";
@@ -31,12 +31,9 @@ function SuccessOverlay({ name }: { name: string }) {
 }
 
 export default function LoginForm() {
-  const [loginMethod, setLoginMethod] = useState<"email" | "phone" | "social">("email");
+  const [loginMethod, setLoginMethod] = useState<"email" | "social">("email");
   const [email, setEmail] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
-  const [otp, setOtp] = useState("");
-  const [otpSent, setOtpSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [errorCode, setErrorCode] = useState("");
@@ -89,70 +86,6 @@ export default function LoginForm() {
     }
   };
 
-  const handleSendOTP = async () => {
-    if (!phoneNumber) {
-      setError("Please enter your phone number");
-      return;
-    }
-    setLoading(true);
-    setError("");
-    try {
-      const res = await fetch(API_URL + "/auth/send-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phoneNumber, purpose: "login" }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || data.message || "Failed to send OTP");
-      setOtpSent(true);
-      setError("");
-      setResendSuccess(false);
-      // Show OTP message
-      setErrorCode("");
-      alert(data.message || "OTP sent!");
-    } catch (err: any) {
-      setError(err.message || "Failed to send OTP");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleVerifyPhoneOtp = async () => {
-    if (!phoneNumber || !otp) {
-      setError("Phone number and OTP are required");
-      return;
-    }
-    setLoading(true);
-    setError("");
-    try {
-      const res = await fetch(API_URL + "/auth/verify-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phoneNumber, otp, purpose: "login" }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || data.message || "OTP verification failed");
-
-      const token = data.token || "";
-      const user = data.user || {};
-
-      localStorage.setItem("reader_token", token);
-      localStorage.setItem("reader_user", JSON.stringify(user));
-
-      setSuccessName(user.username || "Reader");
-      setShowSuccess(true);
-
-      setTimeout(() => {
-        setShowSuccess(false);
-        window.location.href = "/";
-      }, 2500);
-    } catch (err: any) {
-      setError(err.message || "OTP verification failed");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -164,28 +97,12 @@ export default function LoginForm() {
       const url = API_URL + "/auth/login";
       let requestBody: any = {};
 
-      if (loginMethod === "email") {
-        if (!email || !password) {
+      if (!email || !password) {
           setError("Email and password are required");
           setLoading(false);
           return;
         }
         requestBody = { email, password };
-      } else if (loginMethod === "phone") {
-        if (!phoneNumber || !otp) {
-          setError("Phone number and OTP are required");
-          setLoading(false);
-          return;
-        }
-        // Use the dedicated OTP verification endpoint
-        await handleVerifyPhoneOtp();
-        setLoading(false);
-        return;
-      } else if (loginMethod === "social") {
-        setError("Social login is not yet implemented");
-        setLoading(false);
-        return;
-      }
 
       const res = await fetch(url, {
         method: "POST",
@@ -280,14 +197,6 @@ export default function LoginForm() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => { setLoginMethod("phone"); setOtpSent(false); setOtp(""); }}
-                  className={"flex-1 py-2 px-4 rounded-lg font-semibold text-sm transition-colors " + (loginMethod === "phone" ? "bg-red-600 text-white" : "text-gray-600 hover:bg-gray-50")}
-                >
-                  <Phone className="h-4 w-4 inline mr-2" />
-                  Phone
-                </button>
-                <button
-                  type="button"
                   onClick={() => setLoginMethod("social")}
                   className={"flex-1 py-2 px-4 rounded-lg font-semibold text-sm transition-colors " + (loginMethod === "social" ? "bg-red-600 text-white" : "text-gray-600 hover:bg-gray-50")}
                 >
@@ -315,34 +224,6 @@ export default function LoginForm() {
                   </div>
                 )}
 
-                {loginMethod === "phone" && (
-                  <div className="space-y-4">
-                    <div>
-                      <label htmlFor="phone" className="block text-sm font-semibold text-gray-700 mb-2">Phone Number</label>
-                      <div className="relative">
-                        <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                        <input id="phone" type="tel" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition" placeholder="+1234567890" required disabled={otpSent} />
-                      </div>
-                    </div>
-                    {!otpSent ? (
-                      <button type="button" onClick={handleSendOTP} disabled={loading} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                        {loading ? "Sending..." : "Send OTP"}
-                      </button>
-                    ) : (
-                      <div>
-                        <label htmlFor="otp" className="block text-sm font-semibold text-gray-700 mb-2">Enter OTP</label>
-                        <div className="relative">
-                          <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                          <input id="otp" type="text" value={otp} onChange={(e) => setOtp(e.target.value)} className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition" placeholder="Enter 6-digit OTP" maxLength={6} required />
-                        </div>
-                        <button type="button" onClick={() => { setOtpSent(false); setOtp(""); }} className="mt-2 text-sm text-blue-600 hover:text-blue-700">
-                          Resend OTP
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
-
                 {loginMethod === "social" && (
                   <div className="space-y-3">
                     <button type="button" onClick={handleGoogleLogin} disabled={!oauthProviders.google} className="w-full flex items-center justify-center gap-3 bg-white border-2 border-gray-300 hover:border-gray-400 text-gray-700 font-semibold py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
@@ -363,7 +244,7 @@ export default function LoginForm() {
                   </div>
                 )}
 
-                {(loginMethod === "email" || (loginMethod === "phone" && otpSent)) && (
+                {loginMethod === "email" && (
                   <button type="submit" disabled={loading} className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                     {loading ? "Signing in..." : "Sign In"}
                   </button>

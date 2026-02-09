@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { ArrowLeft, Mail, User, Lock, AlertCircle, CheckCircle, Phone, MessageSquare } from "lucide-react"
+import { ArrowLeft, Mail, User, Lock, AlertCircle, CheckCircle } from "lucide-react"
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3004"
 const API_URL = API_BASE + "/api"
@@ -29,12 +29,8 @@ function SuccessOverlay({ name }: { name: string }) {
 }
 
 export default function RegisterForm() {
-  const [regMethod, setRegMethod] = useState<"email" | "mobile" | "social">("email")
+  const [regMethod, setRegMethod] = useState<"email" | "social">("email")
   const [email, setEmail] = useState("")
-  const [mobileNumber, setMobileNumber] = useState("")
-  const [otp, setOtp] = useState("")
-  const [otpSent, setOtpSent] = useState(false)
-  const [otpLoading, setOtpLoading] = useState(false)
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
@@ -57,69 +53,6 @@ export default function RegisterForm() {
       .catch(console.error)
   }, [])
 
-  const handleSendOTP = async () => {
-    if (!mobileNumber) {
-      setError("Please enter your mobile number")
-      return
-    }
-    setOtpLoading(true)
-    setError("")
-    try {
-      const res = await fetch(API_URL + "/auth/send-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phoneNumber: mobileNumber, purpose: "register" })
-      })
-      const data = await res.json()
-      if (!res.ok) {
-        throw new Error(data.error || data.message || "Failed to send OTP")
-      }
-      setOtpSent(true)
-    } catch (err: any) {
-      setError(err.message || "Failed to send OTP")
-    } finally {
-      setOtpLoading(false)
-    }
-  }
-
-  const handleVerifyPhoneOtp = async () => {
-    if (!otp || otp.length !== 6) {
-      setError("Please enter a valid 6-digit OTP")
-      return
-    }
-    if (!username) {
-      setError("Please enter a username")
-      return
-    }
-    setLoading(true)
-    setError("")
-    try {
-      const res = await fetch(API_URL + "/auth/verify-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phoneNumber: mobileNumber, otp, purpose: "register", username })
-      })
-      const data = await res.json()
-      if (!res.ok) {
-        throw new Error(data.error || data.message || "OTP verification failed")
-      }
-      const token = data.token || data.data?.token || ""
-      const user = data.user || data.data?.user || {}
-      localStorage.setItem("reader_token", token)
-      localStorage.setItem("reader_user", JSON.stringify(user))
-      setShowSuccess(true)
-      setSuccessName(user.username || "Reader")
-      setTimeout(() => {
-        setShowSuccess(false)
-        router.push("/")
-      }, 3000)
-    } catch (err: any) {
-      setError(err.message || "OTP verification failed")
-    } finally {
-      setLoading(false)
-    }
-  }
-
   const handleGoogleRegister = () => {
     window.location.href = API_URL + "/auth/google"
   }
@@ -136,23 +69,14 @@ export default function RegisterForm() {
     console.log("[Register] Starting registration with method:", regMethod)
 
     // Validation for email registration
-    if (regMethod === "email") {
-      if (password !== confirmPassword) {
-        setError("Passwords do not match")
-        setLoading(false)
-        return
-      }
-
-      if (password.length < 6) {
-        setError("Password must be at least 6 characters long")
-        setLoading(false)
-        return
-      }
+    if (password !== confirmPassword) {
+      setError("Passwords do not match")
+      setLoading(false)
+      return
     }
 
-    // Mobile registration uses OTP verify flow
-    if (regMethod === "mobile") {
-      await handleVerifyPhoneOtp()
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters long")
       setLoading(false)
       return
     }
@@ -253,18 +177,9 @@ export default function RegisterForm() {
               </button>
               <button
                 type="button"
-                onClick={() => setRegMethod("mobile")}
-                className={"flex-1 py-2 px-4 rounded-lg font-semibold text-sm transition-colors " + (regMethod === "mobile" ? "bg-red-600 text-white" : "text-gray-600 hover:bg-gray-50")}
-              >
-                <Phone className="h-4 w-4 inline mr-2" />
-                Mobile
-              </button>
-              <button
-                type="button"
                 onClick={() => setRegMethod("social")}
                 className={"flex-1 py-2 px-4 rounded-lg font-semibold text-sm transition-colors " + (regMethod === "social" ? "bg-red-600 text-white" : "text-gray-600 hover:bg-gray-50")}
               >
-                <MessageSquare className="h-4 w-4 inline mr-2" />
                 Social
               </button>
             </div>
@@ -311,89 +226,6 @@ export default function RegisterForm() {
                     Continue with X (Twitter)
                   </button>
                 </div>
-              ) : regMethod === "mobile" ? (
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div>
-                    <label htmlFor="mobile" className="block text-sm font-semibold text-gray-700 mb-2">
-                      Mobile Number
-                    </label>
-                    <div className="relative">
-                      <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                      <input
-                        id="mobile"
-                        type="tel"
-                        value={mobileNumber}
-                        onChange={e => setMobileNumber(e.target.value)}
-                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition"
-                        placeholder="+1 234 567 8900"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  {!otpSent ? (
-                    <button
-                      type="button"
-                      onClick={handleSendOTP}
-                      disabled={otpLoading}
-                      className="w-full bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {otpLoading ? "Sending OTP..." : "Send OTP"}
-                    </button>
-                  ) : (
-                    <>
-                      <div>
-                        <label htmlFor="otp" className="block text-sm font-semibold text-gray-700 mb-2">
-                          Enter OTP
-                        </label>
-                        <input
-                          id="otp"
-                          type="text"
-                          value={otp}
-                          onChange={e => setOtp(e.target.value)}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition"
-                          placeholder="Enter 6-digit OTP"
-                          maxLength={6}
-                          required
-                        />
-                      </div>
-
-                      <div>
-                        <label htmlFor="username" className="block text-sm font-semibold text-gray-700 mb-2">
-                          Choose Username
-                        </label>
-                        <div className="relative">
-                          <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                          <input
-                            id="username"
-                            type="text"
-                            value={username}
-                            onChange={e => setUsername(e.target.value)}
-                            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition"
-                            placeholder="Choose a username"
-                            required
-                          />
-                        </div>
-                      </div>
-
-                      <button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {loading ? "Verifying..." : "Verify & Register"}
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => { setOtpSent(false); setOtp(""); handleSendOTP(); }}
-                        className="w-full text-gray-600 hover:text-gray-800 text-sm"
-                      >
-                        Resend OTP
-                      </button>
-                    </>
-                  )}
-                </form>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-6">
                   {/* Email Field */}
