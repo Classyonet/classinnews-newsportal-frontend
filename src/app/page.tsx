@@ -8,6 +8,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { getRelativeTime } from '@/lib/timeUtils';
 import AdDisplay from '@/components/AdDisplay';
+import { cachedFetchSafe } from '@/lib/cacheManager';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3004';
 const ADMIN_API_URL = process.env.NEXT_PUBLIC_ADMIN_API_URL || 'http://localhost:3002';
@@ -124,17 +125,17 @@ export default function HomePage() {
           console.error('Failed to fetch layout settings:', err);
         }
 
-        // Fetch all data in parallel for faster loading
+        // Fetch all data in parallel for faster loading (with caching)
         const [
           trendingRes,
           latestRes,
           mostReadRes,
           categoriesRes
         ] = await Promise.all([
-          fetch(`${API_URL}/api/articles/trending?limit=6`).then(r => r.json()).catch(() => []),
-          fetch(`${API_URL}/api/articles/latest?limit=6`).then(r => r.json()).catch(() => []),
-          fetch(`${API_URL}/api/articles/most-read?limit=6&minViews=${minViews}`).then(r => r.json()).catch(() => []),
-          fetch(`${API_URL}/api/categories`).then(r => r.json()).catch(() => [])
+          cachedFetchSafe(`${API_URL}/api/articles/trending?limit=6`, 'homepage', []),
+          cachedFetchSafe(`${API_URL}/api/articles/latest?limit=6`, 'homepage', []),
+          cachedFetchSafe(`${API_URL}/api/articles/most-read?limit=6&minViews=${minViews}`, 'homepage', []),
+          cachedFetchSafe(`${API_URL}/api/categories`, 'categories', [])
         ]);
 
         // Process trending - first one is featured, rest are popular

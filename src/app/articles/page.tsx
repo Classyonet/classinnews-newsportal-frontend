@@ -6,6 +6,7 @@ import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import ArticleGrid from '@/components/ArticleGrid'
 import Link from 'next/link'
+import { cachedFetch } from '@/lib/cacheManager'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3004/api'
 
@@ -20,12 +21,9 @@ function ArticlesContent() {
     async function fetchArticles() {
       setIsLoading(true)
       try {
-        const res = await fetch(`${API_URL}/articles?page=${page}&limit=12`)
-        if (res.ok) {
-          const data = await res.json()
-          setArticles(data.articles || [])
-          setPagination(data.pagination || null)
-        }
+        const data = await cachedFetch(`${API_URL}/articles?page=${page}&limit=12`, 'articles')
+        setArticles(data.articles || [])
+        setPagination(data.pagination || null)
       } catch (error) {
         console.error('Failed to fetch articles:', error)
       } finally {

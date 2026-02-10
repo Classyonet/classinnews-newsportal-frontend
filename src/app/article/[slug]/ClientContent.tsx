@@ -8,6 +8,7 @@ import { Calendar, User, Eye, Share2, Clock, Tag, Heart } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import ArticleGrid from '@/components/ArticleGrid'
 import AdDisplay from '@/components/AdDisplay'
+import { cachedFetch } from '@/lib/cacheManager'
 import dynamic from 'next/dynamic'
 
 const ArticleComments = dynamic(() => import('@/components/ArticleComments'), { ssr: false })
@@ -30,12 +31,7 @@ export default function ArticlePage() {
 
   async function fetchArticle() {
     try {
-      const res = await fetch(`${API_URL}/articles/${slug}`, { cache: 'no-store' })
-      if (!res.ok) {
-        setArticle(null)
-        return
-      }
-      const data = await res.json()
+      const data = await cachedFetch(`${API_URL}/articles/${slug}`, 'article_detail')
       setArticle(data)
     } catch (error) {
       console.error('Failed to fetch article:', error)
@@ -47,9 +43,7 @@ export default function ArticlePage() {
 
   async function fetchRelatedArticles() {
     try {
-      const res = await fetch(`${API_URL}/articles/${slug}/related?limit=3`, { cache: 'no-store' })
-      if (!res.ok) return
-      const data = await res.json()
+      const data = await cachedFetch(`${API_URL}/articles/${slug}/related?limit=3`, 'articles')
       setRelatedArticles(data)
     } catch (error) {
       console.error('Failed to fetch related articles:', error)

@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
 import ArticleGrid from '@/components/ArticleGrid'
 import Link from 'next/link'
+import { cachedFetch } from '@/lib/cacheManager'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3004/api'
 
@@ -27,12 +28,7 @@ function CategoryPageContent() {
       setError(null)
       
       try {
-        const res = await fetch(`${API_URL}/categories/${slug}?page=${page}&limit=12`)
-        if (!res.ok) {
-          setError('Category not found')
-          return
-        }
-        const data = await res.json()
+        const data = await cachedFetch(`${API_URL}/categories/${slug}?page=${page}&limit=12`, 'categories')
         setCategory(data.category)
         setArticles(data.articles || [])
         setPagination(data.pagination)

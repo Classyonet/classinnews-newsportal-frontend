@@ -4,6 +4,7 @@ export const runtime = 'edge'
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { cachedFetchSafe } from '@/lib/cacheManager'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3004/api'
 
@@ -14,10 +15,8 @@ export default function CategoriesPage() {
   useEffect(() => {
     async function fetchCategories() {
       try {
-        const res = await fetch(`${API_URL}/categories`)
-        if (res.ok) {
-          setCategories(await res.json())
-        }
+        const data = await cachedFetchSafe(`${API_URL}/categories`, 'categories', [])
+        setCategories(data)
       } catch (error) {
         console.error('Failed to fetch categories:', error)
       } finally {
