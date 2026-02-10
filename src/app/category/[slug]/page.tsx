@@ -1,8 +1,6 @@
-import CategoryPage from './ClientContent'
+export const runtime = 'edge'
 
-export async function generateStaticParams() {
-  return [{ slug: '_placeholder' }]
-}
+import CategoryPage from './ClientContent'
 
 export default function Page() {
   return <CategoryPage />

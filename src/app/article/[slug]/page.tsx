@@ -1,8 +1,6 @@
-import ArticlePage from './ClientContent'
+export const runtime = 'edge'
 
-export async function generateStaticParams() {
-  return [{ slug: '_placeholder' }]
-}
+import ArticlePage from './ClientContent'
 
 export default function Page() {
   return <ArticlePage />
