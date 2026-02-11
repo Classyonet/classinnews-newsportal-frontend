@@ -35,6 +35,7 @@ interface CacheSettings {
   cache_ttl_media: number
   cache_ttl_settings: number
   cache_version: number
+  cache_cleared_at: string
   _fetchedAt: number
 }
 
@@ -47,6 +48,7 @@ const DEFAULT_SETTINGS: CacheSettings = {
   cache_ttl_media: 3600,
   cache_ttl_settings: 1800,
   cache_version: 1,
+  cache_cleared_at: '',
   _fetchedAt: 0
 }
 
@@ -116,6 +118,19 @@ async function fetchCacheSettings(): Promise<CacheSettings> {
         case 'cache_version':
           settings.cache_version = parseInt(item.value) || DEFAULT_SETTINGS.cache_version
           break
+        case 'cache_cleared_at':
+          settings.cache_cleared_at = item.value || ''
+          break
+      }
+    }
+
+    // Check if admin triggered a cache clear — compare with last known clear timestamp
+    if (settings.cache_cleared_at) {
+      const lastKnownClear = localStorage.getItem('cin_last_clear') || ''
+      if (settings.cache_cleared_at !== lastKnownClear) {
+        // Admin cleared cache since our last check — purge all cached data
+        clearAllCacheEntries()
+        localStorage.setItem('cin_last_clear', settings.cache_cleared_at)
       }
     }
 
@@ -303,6 +318,23 @@ export async function cachedFetchSafe<T = any>(
   } catch {
     return defaultValue
   }
+}
+
+/**
+ * Clear all cached data entries (preserves settings cache for efficiency)
+ * Called automatically when admin triggers "Clear Cache"
+ */
+function clearAllCacheEntries(): void {
+  if (!isLocalStorageAvailable()) return
+  
+  const keysToRemove: string[] = []
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i)
+    if (key && key.startsWith(CACHE_PREFIX)) {
+      keysToRemove.push(key)
+    }
+  }
+  keysToRemove.forEach(key => localStorage.removeItem(key))
 }
 
 /**
