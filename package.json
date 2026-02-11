@@ -7,10 +7,10 @@
   },
   "scripts": {
     "dev": "next dev -p 3006",
-    "build": "next build",
+    "build": "npx @cloudflare/next-on-pages",
+    "build:local": "next build",
     "start": "next start",
     "lint": "next lint",
-    "pages:build": "npx @cloudflare/next-on-pages",
     "pages:dev": "npx wrangler pages dev .vercel/output/static --compatibility-flag=nodejs_compat"
   },
   "dependencies": {
