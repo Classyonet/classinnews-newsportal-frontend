@@ -1,7 +1,0 @@
-# Cloudflare Pages SPA fallback for dynamic routes
-# These rewrites serve the placeholder page HTML for any dynamic slug,
-# then client-side JS reads the actual slug via useParams() and fetches data
-
-/article/* /article/_placeholder/index.html 200
-/articles/* /articles/_placeholder/index.html 200
-/category/* /category/_placeholder/index.html 200

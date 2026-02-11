@@ -1,0 +1,16 @@
+# Prevent caching of HTML pages - serve fresh content from edge worker
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+
+/*.html
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/login
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/register
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/
+  Cache-Control: no-cache, no-store, must-revalidate
