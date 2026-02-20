@@ -1,119 +1,136 @@
 import { useEffect, useRef } from 'react';
 import notificationService from '@/services/notificationService';
 
-const POLL_INTERVAL = 5000; // Check every 5 seconds
+const POLL_INTERVAL = 15000;
 const LAST_ARTICLE_KEY = 'last_article_notified_id';
+const GATE_CACHE_MS = 60000;
 
 export const useArticleNotifications = () => {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const lastArticleIdRef = useRef<string | null>(null);
+  const gateRef = useRef<{ allowed: boolean; checkedAt: number }>({ allowed: false, checkedAt: 0 });
 
   useEffect(() => {
-    console.log('🔍 Checking notification setup...');
-    
-    // Only start listening if user has accepted notifications
-    if (!notificationService.hasUserAccepted()) {
-      console.log('⏭️ User has not accepted notifications yet');
-      return;
-    }
+    if (!notificationService.hasUserAccepted()) return;
 
-    console.log('✅ User has accepted notifications');
-
-    // Check if permission is still granted
     const permissionState = notificationService.getPermissionState();
-    if (!permissionState.granted) {
-      console.log('❌ Notification permission not granted');
-      return;
-    }
+    if (!permissionState.granted) return;
 
-    console.log('✅ Notification permission granted');
+    const getUserId = (): string | null => {
+      const userStr = localStorage.getItem('reader_user');
+      if (!userStr) return null;
+      try {
+        const user = JSON.parse(userStr);
+        return user?.id || null;
+      } catch {
+        return null;
+      }
+    };
 
-    // Load last notified article ID from localStorage
-    const lastId = localStorage.getItem(LAST_ARTICLE_KEY);
-    lastArticleIdRef.current = lastId;
-    console.log('📝 Last notified article ID:', lastId || 'none');
+    const isMobileDevice = (): boolean => {
+      return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    };
 
-    // Function to check for new published articles
+    const canDeliverNotifications = async (): Promise<boolean> => {
+      const now = Date.now();
+      if (now - gateRef.current.checkedAt < GATE_CACHE_MS) {
+        return gateRef.current.allowed;
+      }
+
+      try {
+        const adminApi = process.env.NEXT_PUBLIC_ADMIN_API_URL || 'http://localhost:3002';
+
+        const settingsRes = await fetch(`${adminApi}/api/settings/public`);
+        const settingsData = await settingsRes.json();
+        const settings = settingsData?.settings || {};
+
+        const pushEnabled = settings.push_notifications_enabled !== 'false';
+        const articlePushEnabled = settings.push_new_article_notification !== 'false';
+        const mobileEnabled = settings.push_mobile_enabled === 'true';
+        const desktopEnabled = settings.push_desktop_enabled !== 'false';
+
+        if (!pushEnabled || !articlePushEnabled) {
+          gateRef.current = { allowed: false, checkedAt: now };
+          return false;
+        }
+
+        if (isMobileDevice() && !mobileEnabled) {
+          gateRef.current = { allowed: false, checkedAt: now };
+          return false;
+        }
+
+        if (!isMobileDevice() && !desktopEnabled) {
+          gateRef.current = { allowed: false, checkedAt: now };
+          return false;
+        }
+
+        const subscriptionId = localStorage.getItem('notification_subscription_id') || '';
+        const userId = getUserId() || '';
+        const query = new URLSearchParams();
+        if (subscriptionId) query.set('subscriptionId', subscriptionId);
+        if (userId) query.set('userId', userId);
+
+        const statusRes = await fetch(`${adminApi}/api/notifications/subscription-status?${query.toString()}`);
+        const statusData = await statusRes.json();
+        const allowed = statusData?.data?.status === 'approved';
+
+        gateRef.current = { allowed, checkedAt: now };
+        return allowed;
+      } catch {
+        gateRef.current = { allowed: false, checkedAt: now };
+        return false;
+      }
+    };
+
     const checkForNewArticles = async () => {
       try {
+        const allowed = await canDeliverNotifications();
+        if (!allowed) return;
+
         const response = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3004/api'}/articles/latest?limit=1`
         );
 
-        if (!response.ok) {
-          console.error('Failed to fetch latest article');
-          return;
-        }
+        if (!response.ok) return;
 
         const articles = await response.json();
-
-        if (!articles || !Array.isArray(articles) || articles.length === 0) {
-          return;
-        }
+        if (!Array.isArray(articles) || articles.length === 0) return;
 
         const latestArticle = articles[0];
+        if (!latestArticle?.id) return;
 
-        if (!latestArticle || !latestArticle.id) {
-          return;
-        }
-
-        console.log('📰 Latest article:', latestArticle.title, 'ID:', latestArticle.id);
-
-        // Check if this is a new article (different from last notified)
         if (lastArticleIdRef.current && latestArticle.id !== lastArticleIdRef.current) {
-          console.log('🆕 New article detected!');
-          
-          // Show notification for new article
-          await notificationService.showNotification(
-            '📰 New Article Published!',
-            {
-              body: latestArticle.title,
-              icon: latestArticle.featuredImageUrl || '/logo.svg',
-              badge: '/badge.svg',
-              tag: `article-${latestArticle.id}`,
-              data: {
-                url: `${window.location.origin}/articles/${latestArticle.slug}`
-              },
-              requireInteraction: false,
-            }
-          );
-
-          console.log('🔔 Notification shown for:', latestArticle.title);
-        } else if (!lastArticleIdRef.current) {
-          console.log('📌 First time - storing current article ID');
-        } else {
-          console.log('✓ No new articles');
+          await notificationService.showNotification('New Article Published', {
+            body: latestArticle.title,
+            icon: latestArticle.featuredImageUrl || '/logo.svg',
+            badge: '/badge.svg',
+            tag: `article-${latestArticle.id}`,
+            data: {
+              url: `${window.location.origin}/articles/${latestArticle.slug}`
+            },
+            requireInteraction: false,
+          });
         }
 
-        // Update last article ID
         lastArticleIdRef.current = latestArticle.id;
         localStorage.setItem(LAST_ARTICLE_KEY, latestArticle.id);
-
       } catch (error) {
-        console.error('❌ Error checking for new articles:', error);
+        console.error('Notification polling failed:', error);
       }
     };
 
-    console.log('⏰ Starting article check interval (every 5 seconds)');
+    lastArticleIdRef.current = localStorage.getItem(LAST_ARTICLE_KEY);
 
-    // Initial check after a short delay
     const initialTimeout = setTimeout(() => {
-      console.log('🔄 Running initial article check...');
       checkForNewArticles();
     }, 2000);
 
-    // Start polling
     intervalRef.current = setInterval(() => {
-      console.log('🔄 Checking for new articles...');
       checkForNewArticles();
     }, POLL_INTERVAL);
 
-    // Cleanup
     return () => {
-      console.log('🛑 Stopping notification polling');
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
+      if (intervalRef.current) clearInterval(intervalRef.current);
       clearTimeout(initialTimeout);
     };
   }, []);

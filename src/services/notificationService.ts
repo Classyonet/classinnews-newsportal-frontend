@@ -119,8 +119,9 @@ class NotificationService {
     }
   }
 
-  // Subscribe to push notifications (for future use with backend)
-  public async subscribeToPush(userId: string): Promise<PushSubscription | null> {
+  // Subscribe to push notifications (service-worker subscription only).
+  // Backend tracking is handled by NotificationConsent.
+  public async subscribeToPush(_userId: string): Promise<PushSubscription | null> {
     if (!this.isSupported()) {
       return null;
     }
@@ -134,44 +135,22 @@ class NotificationService {
         return existingSubscription;
       }
 
+      const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '';
+      if (!vapidPublicKey) {
+        console.warn('VAPID public key is not configured. Skipping pushManager subscription.');
+        return null;
+      }
+
       // Subscribe to push
-      // Note: You'll need VAPID keys for production
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: this.urlBase64ToUint8Array(
-          process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || ''
-        ) as any
+        applicationServerKey: this.urlBase64ToUint8Array(vapidPublicKey) as any
       });
-
-      // Send subscription to backend
-      await this.sendSubscriptionToBackend(subscription, userId);
 
       return subscription;
     } catch (error) {
       console.error('Error subscribing to push:', error);
       return null;
-    }
-  }
-
-  // Send subscription to backend
-  private async sendSubscriptionToBackend(subscription: PushSubscription, userId: string): Promise<void> {
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3004/api'}/notifications/subscribe`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          subscription,
-          userId
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to send subscription to backend');
-      }
-    } catch (error) {
-      console.error('Error sending subscription to backend:', error);
     }
   }
 
