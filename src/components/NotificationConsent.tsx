@@ -16,7 +16,6 @@ export default function NotificationConsent() {
   const [showPopup, setShowPopup] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [awaitingApproval, setAwaitingApproval] = useState(false);
 
   useEffect(() => {
     const shouldShowPopup = async (): Promise<boolean> => {
@@ -127,21 +126,17 @@ export default function NotificationConsent() {
 
         const trackingResult = await trackSubscription(userId, pushSubscription);
         const subscriptionId = trackingResult?.data?.id;
-        const isPendingApproval = trackingResult?.data?.status === 'pending_approval';
         if (subscriptionId) {
           localStorage.setItem('notification_subscription_id', subscriptionId);
         }
 
-        setAwaitingApproval(isPendingApproval);
         setShowPopup(false);
         setShowSuccess(true);
 
         setTimeout(async () => {
           try {
             await notificationService.showNotification('Welcome to ClassinNews!', {
-              body: isPendingApproval
-                ? 'Subscription received. Notifications start after admin approval.'
-                : 'You will receive notifications for new articles.',
+              body: 'You will receive notifications for new articles.',
               icon: '/logo.png',
             });
           } catch {
@@ -185,9 +180,7 @@ export default function NotificationConsent() {
               </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Successfully Subscribed!</h2>
               <p className="text-gray-600 mb-6">
-                {awaitingApproval
-                  ? 'Your request is pending admin approval. Notifications will start after approval.'
-                  : 'You are all set. You will receive notifications for newly published articles.'}
+                You are all set. You will receive notifications for newly published articles.
               </p>
               <button
                 onClick={() => setShowSuccess(false)}

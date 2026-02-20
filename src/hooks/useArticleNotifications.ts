@@ -16,17 +16,6 @@ export const useArticleNotifications = () => {
     const permissionState = notificationService.getPermissionState();
     if (!permissionState.granted) return;
 
-    const getUserId = (): string | null => {
-      const userStr = localStorage.getItem('reader_user');
-      if (!userStr) return null;
-      try {
-        const user = JSON.parse(userStr);
-        return user?.id || null;
-      } catch {
-        return null;
-      }
-    };
-
     const isMobileDevice = (): boolean => {
       return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     };
@@ -64,18 +53,8 @@ export const useArticleNotifications = () => {
           return false;
         }
 
-        const subscriptionId = localStorage.getItem('notification_subscription_id') || '';
-        const userId = getUserId() || '';
-        const query = new URLSearchParams();
-        if (subscriptionId) query.set('subscriptionId', subscriptionId);
-        if (userId) query.set('userId', userId);
-
-        const statusRes = await fetch(`${adminApi}/api/notifications/subscription-status?${query.toString()}`);
-        const statusData = await statusRes.json();
-        const allowed = statusData?.data?.status === 'approved';
-
-        gateRef.current = { allowed, checkedAt: now };
-        return allowed;
+        gateRef.current = { allowed: true, checkedAt: now };
+        return true;
       } catch {
         gateRef.current = { allowed: false, checkedAt: now };
         return false;
