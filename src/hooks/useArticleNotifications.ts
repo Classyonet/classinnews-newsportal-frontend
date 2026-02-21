@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import notificationService from '@/services/notificationService';
 
-const POLL_INTERVAL = 15000;
+const POLL_INTERVAL = 5000;
 const LAST_ARTICLE_KEY = 'last_article_notified_id';
 const GATE_CACHE_MS = 60000;
 
@@ -11,17 +11,24 @@ export const useArticleNotifications = () => {
   const gateRef = useRef<{ allowed: boolean; checkedAt: number }>({ allowed: false, checkedAt: 0 });
 
   useEffect(() => {
-    const permissionState = notificationService.getPermissionState();
-    if (!permissionState.granted) return;
-    if (!notificationService.hasUserAccepted()) {
-      notificationService.setUserAccepted();
-    }
-
     const isMobileDevice = (): boolean => {
       return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     };
 
+    const isLocallyEligible = (): boolean => {
+      const permissionState = notificationService.getPermissionState();
+      if (!permissionState.granted) return false;
+      if (!notificationService.hasUserAccepted()) {
+        notificationService.setUserAccepted();
+      }
+      return true;
+    };
+
     const canDeliverNotifications = async (): Promise<boolean> => {
+      if (!isLocallyEligible()) {
+        return false;
+      }
+
       const now = Date.now();
       if (now - gateRef.current.checkedAt < GATE_CACHE_MS) {
         return gateRef.current.allowed;
@@ -109,9 +116,16 @@ export const useArticleNotifications = () => {
       checkForNewArticles();
     }, POLL_INTERVAL);
 
+    const onSubscriptionUpdated = () => {
+      gateRef.current = { allowed: false, checkedAt: 0 };
+      checkForNewArticles();
+    };
+    window.addEventListener('notification-subscription-updated', onSubscriptionUpdated);
+
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
       clearTimeout(initialTimeout);
+      window.removeEventListener('notification-subscription-updated', onSubscriptionUpdated);
     };
   }, []);
 };

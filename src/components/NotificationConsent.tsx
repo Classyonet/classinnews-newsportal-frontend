@@ -23,6 +23,7 @@ const ADMIN_API_URL = process.env.NEXT_PUBLIC_ADMIN_API_URL || 'http://localhost
 const BLOCKED_HELP_KEY = 'notification_blocked_help_dismissed_time';
 const BLOCKED_HELP_REAPPEAR_DAYS = 1;
 const TRACK_TIMEOUT_MS = 8000;
+const SUBSCRIPTION_UPDATED_EVENT = 'notification-subscription-updated';
 
 function getBrowserHelp(): BrowserHelp {
   const ua = navigator.userAgent;
@@ -153,6 +154,7 @@ export default function NotificationConsent() {
     notificationService.setUserAccepted();
     localStorage.removeItem('notification_denied');
     localStorage.removeItem('notification_denied_time');
+    window.dispatchEvent(new Event(SUBSCRIPTION_UPDATED_EVENT));
 
     const userStr = localStorage.getItem('reader_user');
     let userId: string | null = null;
@@ -173,6 +175,7 @@ export default function NotificationConsent() {
     if (subscriptionId) {
       localStorage.setItem('notification_subscription_id', subscriptionId);
     }
+    window.dispatchEvent(new Event(SUBSCRIPTION_UPDATED_EVENT));
   };
 
   useEffect(() => {
