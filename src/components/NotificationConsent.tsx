@@ -24,6 +24,8 @@ const BLOCKED_HELP_KEY = 'notification_blocked_help_dismissed_time';
 const BLOCKED_HELP_REAPPEAR_DAYS = 1;
 const TRACK_TIMEOUT_MS = 8000;
 const SUBSCRIPTION_UPDATED_EVENT = 'notification-subscription-updated';
+const LAST_SYNC_KEY = 'notification_last_sync_time';
+const SYNC_INTERVAL_MS = 6 * 60 * 60 * 1000;
 
 function getBrowserHelp(): BrowserHelp {
   const ua = navigator.userAgent;
@@ -175,6 +177,7 @@ export default function NotificationConsent() {
     if (subscriptionId) {
       localStorage.setItem('notification_subscription_id', subscriptionId);
     }
+    localStorage.setItem(LAST_SYNC_KEY, Date.now().toString());
     window.dispatchEvent(new Event(SUBSCRIPTION_UPDATED_EVENT));
   };
 
@@ -226,9 +229,16 @@ export default function NotificationConsent() {
       if (!notificationService.isSupported()) return;
 
       const state = notificationService.getPermissionState();
+      const lastSyncTime = parseInt(localStorage.getItem(LAST_SYNC_KEY) || '0', 10);
+      const shouldSyncNow = Number.isNaN(lastSyncTime) || (Date.now() - lastSyncTime > SYNC_INTERVAL_MS);
 
       if (state.granted) {
         notificationService.setUserAccepted();
+        if (shouldSyncNow) {
+          void completeSubscription().catch((error) => {
+            console.error('Auto-sync for granted permission failed:', error);
+          });
+        }
         return;
       }
 
