@@ -11,10 +11,11 @@ export const useArticleNotifications = () => {
   const gateRef = useRef<{ allowed: boolean; checkedAt: number }>({ allowed: false, checkedAt: 0 });
 
   useEffect(() => {
-    if (!notificationService.hasUserAccepted()) return;
-
     const permissionState = notificationService.getPermissionState();
     if (!permissionState.granted) return;
+    if (!notificationService.hasUserAccepted()) {
+      notificationService.setUserAccepted();
+    }
 
     const isMobileDevice = (): boolean => {
       return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
