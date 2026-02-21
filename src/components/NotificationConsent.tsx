@@ -33,6 +33,13 @@ export default function NotificationConsent() {
 
       const state = notificationService.getPermissionState();
       if (state.granted) return false;
+      if (state.denied) {
+        notificationService.setUserDenied();
+        if (!localStorage.getItem('notification_denied_time')) {
+          localStorage.setItem('notification_denied_time', Date.now().toString());
+        }
+        return false;
+      }
       if (notificationService.hasUserAccepted()) return false;
 
       if (notificationService.hasUserDenied()) {
@@ -147,7 +154,8 @@ export default function NotificationConsent() {
         setTimeout(() => {
           setShowSuccess(false);
         }, 5000);
-      } else if (permission === 'denied') {
+      } else {
+        // Includes explicit "denied" and browser "default" (quiet/blocked prompt).
         notificationService.setUserDenied();
         localStorage.setItem('notification_denied_time', Date.now().toString());
         setShowPopup(false);
