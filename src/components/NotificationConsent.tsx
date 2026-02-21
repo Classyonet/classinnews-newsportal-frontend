@@ -22,6 +22,7 @@ type BrowserHelp = {
 const ADMIN_API_URL = process.env.NEXT_PUBLIC_ADMIN_API_URL || 'http://localhost:3002';
 const BLOCKED_HELP_KEY = 'notification_blocked_help_dismissed_time';
 const BLOCKED_HELP_REAPPEAR_DAYS = 1;
+const TRACK_TIMEOUT_MS = 8000;
 
 function getBrowserHelp(): BrowserHelp {
   const ua = navigator.userAgent;
@@ -102,7 +103,11 @@ export default function NotificationConsent() {
     userId: string | null,
     pushSubscription: PushSubscription | null
   ): Promise<TrackingResult | null> => {
+    let timeout: ReturnType<typeof setTimeout> | null = null;
     try {
+      const controller = new AbortController();
+      timeout = setTimeout(() => controller.abort(), TRACK_TIMEOUT_MS);
+
       const deviceInfo = {
         userAgent: navigator.userAgent,
         platform: navigator.platform,
@@ -114,6 +119,7 @@ export default function NotificationConsent() {
       const response = await fetch(`${ADMIN_API_URL}/api/notifications/track-subscription`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
         body: JSON.stringify({
           userId,
           deviceInfo: JSON.stringify(deviceInfo),
@@ -121,6 +127,7 @@ export default function NotificationConsent() {
           pushSubscription,
         }),
       });
+      clearTimeout(timeout);
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -132,6 +139,8 @@ export default function NotificationConsent() {
     } catch (error) {
       console.error('Error tracking subscription:', error);
       return null;
+    } finally {
+      if (timeout) clearTimeout(timeout);
     }
   };
 
@@ -150,12 +159,14 @@ export default function NotificationConsent() {
     let pushSubscription: PushSubscription | null = null;
 
     if (userStr) {
-      const user = JSON.parse(userStr);
-      userId = user.id;
-      pushSubscription = await notificationService.subscribeToPush(user.id);
-    } else {
-      pushSubscription = await notificationService.subscribeToPush('anonymous');
+      try {
+        const user = JSON.parse(userStr);
+        userId = user?.id || null;
+      } catch {
+        userId = null;
+      }
     }
+    pushSubscription = await notificationService.subscribeToPush(userId || 'anonymous');
 
     const trackingResult = await trackSubscription(userId, pushSubscription);
     const subscriptionId = trackingResult?.data?.id;
@@ -261,8 +272,10 @@ export default function NotificationConsent() {
     try {
       const permission = await notificationService.requestPermission();
       if (permission === 'granted') {
-        await completeSubscription();
         showSuccessState();
+        void completeSubscription().catch((error) => {
+          console.error('Background subscription setup failed:', error);
+        });
       } else {
         markDenied();
         setPopupMode('blocked');
@@ -286,8 +299,10 @@ export default function NotificationConsent() {
         return;
       }
 
-      await completeSubscription();
       showSuccessState();
+      void completeSubscription().catch((error) => {
+        console.error('Background subscription setup failed:', error);
+      });
     } catch (error) {
       console.error('Error finalizing enabled notifications:', error);
       setBlockedNotice('Could not finish subscription setup. Please reload and try again.');

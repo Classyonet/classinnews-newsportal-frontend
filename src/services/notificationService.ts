@@ -94,8 +94,8 @@ class NotificationService {
       throw new Error('Notification permission not granted');
     }
 
-    if ('serviceWorker' in navigator) {
-      const registration = await navigator.serviceWorker.ready;
+    const registration = await this.getServiceWorkerRegistration();
+    if (registration) {
       await registration.showNotification(title, {
         icon: '/logo.svg',
         badge: '/badge.svg',
@@ -127,7 +127,11 @@ class NotificationService {
     }
 
     try {
-      const registration = await navigator.serviceWorker.ready;
+      const registration = await this.getServiceWorkerRegistration();
+      if (!registration) {
+        console.warn('Service worker is not ready. Skipping push subscription for now.');
+        return null;
+      }
       
       // Check if already subscribed
       const existingSubscription = await registration.pushManager.getSubscription();
@@ -150,6 +154,40 @@ class NotificationService {
       return subscription;
     } catch (error) {
       console.error('Error subscribing to push:', error);
+      return null;
+    }
+  }
+
+  private async getServiceWorkerRegistration(timeoutMs = 8000): Promise<ServiceWorkerRegistration | null> {
+    if (!('serviceWorker' in navigator)) return null;
+
+    try {
+      const existing = await navigator.serviceWorker.getRegistration();
+      if (existing) return existing;
+    } catch {
+      // Continue with registration attempt.
+    }
+
+    try {
+      await navigator.serviceWorker.register('/sw.js');
+    } catch {
+      // Ignore registration failure; fallback may still work.
+    }
+
+    try {
+      const readyOrNull = await Promise.race<ServiceWorkerRegistration | null>([
+        navigator.serviceWorker.ready,
+        new Promise<null>((resolve) => setTimeout(() => resolve(null), timeoutMs)),
+      ]);
+      if (readyOrNull) return readyOrNull;
+    } catch {
+      // Continue to final attempt below.
+    }
+
+    try {
+      const lateExisting = await navigator.serviceWorker.getRegistration();
+      return lateExisting || null;
+    } catch {
       return null;
     }
   }
