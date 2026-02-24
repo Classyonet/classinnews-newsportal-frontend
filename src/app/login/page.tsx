@@ -3,5 +3,9 @@
 import LoginForm from '@/components/LoginForm'
 
 export default function LoginPage() {
-  return <LoginForm />
+  return (
+    <div data-auth-design="v2-publisher-style-login">
+      <LoginForm />
+    </div>
+  )
 }
