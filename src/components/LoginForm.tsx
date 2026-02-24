@@ -103,21 +103,21 @@ export default function LoginForm() {
 
   return (
     <div className="min-h-screen flex">
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-red-700 via-rose-700 to-orange-700 relative overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-purple-700 via-indigo-700 to-blue-800 relative overflow-hidden">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-20 left-10 w-72 h-72 bg-white rounded-full blur-3xl" />
           <div className="absolute bottom-20 right-10 w-96 h-96 bg-white rounded-full blur-3xl" />
         </div>
         <div className="relative z-10 flex flex-col justify-center px-16 text-white">
           <h1 className="text-5xl font-extrabold mb-4 leading-tight">ClassinNews</h1>
-          <p className="text-xl text-red-100 mb-8 leading-relaxed">Your trusted source for quality news and insightful journalism.</p>
+          <p className="text-xl text-purple-100 mb-8 leading-relaxed">Your trusted source for quality news and insightful journalism.</p>
           <div className="space-y-4">
             {["Personalized news feed", "Save & bookmark articles", "Engage with the community"].map((item) => (
               <div key={item} className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
                 </div>
-                <span className="text-red-100">{item}</span>
+                <span className="text-purple-100">{item}</span>
               </div>
             ))}
           </div>
@@ -127,7 +127,7 @@ export default function LoginForm() {
       <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 bg-gray-50">
         <div className="w-full max-w-md">
           <div className="mb-8">
-            <Link href="/" className="text-sm text-gray-500 hover:text-red-600 transition-colors">&larr; Back to Home</Link>
+            <Link href="/" className="text-sm text-gray-500 hover:text-purple-600 transition-colors">&larr; Back to Home</Link>
           </div>
 
           <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
@@ -174,27 +174,27 @@ export default function LoginForm() {
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
                 <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email"
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition bg-gray-50 placeholder-gray-400"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition bg-gray-50 placeholder-gray-400"
                   placeholder="you@example.com" />
               </div>
               <div>
                 <div className="flex items-center justify-between mb-1.5">
                   <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
-                  <Link href="/forgot-password" className="text-sm text-red-600 hover:text-red-700 font-medium">Forgot?</Link>
+                  <Link href="/forgot-password" className="text-sm text-purple-600 hover:text-purple-700 font-medium">Forgot?</Link>
                 </div>
                 <input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password"
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition bg-gray-50 placeholder-gray-400"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition bg-gray-50 placeholder-gray-400"
                   placeholder="Enter your password" />
               </div>
               <button type="submit" disabled={loading}
-                className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-4 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md">
+                className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-4 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md">
                 {loading ? "Signing in..." : "Sign In"}
               </button>
             </form>
 
             <p className="mt-6 text-center text-sm text-gray-500">
               Don&apos;t have an account?{" "}
-              <Link href="/register" className="text-red-600 hover:text-red-700 font-semibold">Create one</Link>
+              <Link href="/register" className="text-purple-600 hover:text-purple-700 font-semibold">Create one</Link>
             </p>
           </div>
         </div>
