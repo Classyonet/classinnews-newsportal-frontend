@@ -28,6 +28,18 @@ const LAST_SYNC_KEY = 'notification_last_sync_time';
 const SYNC_INTERVAL_MS = 6 * 60 * 60 * 1000;
 
 function getBrowserHelp(): BrowserHelp {
+  if (typeof navigator === 'undefined') {
+    return {
+      browser: 'Browser',
+      settingsUrl: null,
+      steps: [
+        'Open this site permission settings in your browser.',
+        'Set Notifications to Allow for this site.',
+        'Reload this page and click "I Enabled Notifications".',
+      ],
+    };
+  }
+
   const ua = navigator.userAgent;
   const isEdge = ua.includes('Edg/');
   const isChrome = ua.includes('Chrome') && !isEdge;
