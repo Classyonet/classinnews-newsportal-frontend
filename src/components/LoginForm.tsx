@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3004";
-const API_URL = API_BASE + "/api";
+const API_URL = `${API_BASE}/api`;
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
@@ -17,8 +17,8 @@ export default function LoginForm() {
   const [googleEnabled, setGoogleEnabled] = useState(false);
 
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const errorParam = urlParams.get("error");
+    const params = new URLSearchParams(window.location.search);
+    const errorParam = params.get("error");
 
     if (errorParam) {
       const messages: Record<string, string> = {
@@ -30,23 +30,24 @@ export default function LoginForm() {
       setError(messages[errorParam] || "An error occurred during login.");
     }
 
-    fetch(API_URL + "/auth/oauth-providers")
+    fetch(`${API_URL}/auth/oauth-providers`)
       .then((res) => res.json())
       .then((data) => {
-        if (data.providers?.google) setGoogleEnabled(true);
+        if (data?.providers?.google) setGoogleEnabled(true);
       })
       .catch(() => {});
   }, []);
 
   const handleGoogleLogin = () => {
-    window.location.href = API_URL + "/auth/google";
+    window.location.href = `${API_URL}/auth/google`;
   };
 
   const handleResendVerification = async () => {
     setResending(true);
     setResendSuccess(false);
+
     try {
-      const response = await fetch(API_URL + "/auth/resend-verification", {
+      const response = await fetch(`${API_URL}/auth/resend-verification`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
@@ -66,6 +67,7 @@ export default function LoginForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!email || !password) {
       setError("Email and password are required");
       return;
@@ -77,20 +79,21 @@ export default function LoginForm() {
     setResendSuccess(false);
 
     try {
-      const res = await fetch(API_URL + "/auth/login", {
+      const response = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
-      const data = await res.json();
+      const data = await response.json();
 
-      if (!res.ok) {
-        if (data.code) setErrorCode(data.code);
+      if (!response.ok) {
+        if (data?.code) setErrorCode(data.code);
         throw new Error(data.error || data.message || "Login failed");
       }
 
       const token = data.token || data.data?.token || "";
       const user = data.user || data.data?.user || {};
+
       localStorage.setItem("reader_token", token);
       localStorage.setItem("reader_user", JSON.stringify(user));
       window.location.href = "/";
@@ -102,7 +105,7 @@ export default function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex" data-auth-redesign="reader-login-v3">
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-purple-700 via-indigo-700 to-blue-800 relative overflow-hidden">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-20 left-10 w-72 h-72 bg-white rounded-full blur-3xl" />
@@ -110,12 +113,20 @@ export default function LoginForm() {
         </div>
         <div className="relative z-10 flex flex-col justify-center px-16 text-white">
           <h1 className="text-5xl font-extrabold mb-4 leading-tight">ClassinNews</h1>
-          <p className="text-xl text-purple-100 mb-8 leading-relaxed">Your trusted source for quality news and insightful journalism.</p>
+          <p className="text-xl text-purple-100 mb-8 leading-relaxed">
+            Your trusted source for quality news and insightful journalism.
+          </p>
           <div className="space-y-4">
-            {["Personalized news feed", "Save & bookmark articles", "Engage with the community"].map((item) => (
+            {[
+              "Personalized news feed",
+              "Save and bookmark articles",
+              "Engage with the community",
+            ].map((item) => (
               <div key={item} className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
                 </div>
                 <span className="text-purple-100">{item}</span>
               </div>
@@ -127,7 +138,9 @@ export default function LoginForm() {
       <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 bg-gray-50">
         <div className="w-full max-w-md">
           <div className="mb-8">
-            <Link href="/" className="text-sm text-gray-500 hover:text-purple-600 transition-colors">&larr; Back to Home</Link>
+            <Link href="/" className="text-sm text-gray-500 hover:text-purple-600 transition-colors">
+              &larr; Back to Home
+            </Link>
           </div>
 
           <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
@@ -136,8 +149,12 @@ export default function LoginForm() {
               <p className="text-gray-500 mt-1">Sign in to your reader account</p>
             </div>
 
-            <button type="button" onClick={handleGoogleLogin} disabled={!googleEnabled}
-              className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white border-2 border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all font-medium text-gray-700 disabled:opacity-40 disabled:cursor-not-allowed mb-6">
+            <button
+              type="button"
+              onClick={handleGoogleLogin}
+              disabled={!googleEnabled}
+              className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white border-2 border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all font-medium text-gray-700 disabled:opacity-40 disabled:cursor-not-allowed mb-6"
+            >
               <svg className="h-5 w-5" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
                 <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
@@ -148,8 +165,12 @@ export default function LoginForm() {
             </button>
 
             <div className="relative mb-6">
-              <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-200" /></div>
-              <div className="relative flex justify-center"><span className="bg-white px-4 text-sm text-gray-400">or sign in with email</span></div>
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-200" />
+              </div>
+              <div className="relative flex justify-center">
+                <span className="bg-white px-4 text-sm text-gray-400">or sign in with email</span>
+              </div>
             </div>
 
             {error && (
@@ -158,10 +179,14 @@ export default function LoginForm() {
                 {errorCode === "EMAIL_NOT_VERIFIED" && (
                   <div className="mt-2">
                     {resendSuccess ? (
-                      <p className="text-sm text-green-600">Verification email sent! Check your inbox.</p>
+                      <p className="text-sm text-green-600">Verification email sent. Check your inbox.</p>
                     ) : (
-                      <button type="button" onClick={handleResendVerification} disabled={resending}
-                        className="w-full mt-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors disabled:opacity-50">
+                      <button
+                        type="button"
+                        onClick={handleResendVerification}
+                        disabled={resending}
+                        className="w-full mt-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors disabled:opacity-50"
+                      >
                         {resending ? "Sending..." : "Resend Verification Email"}
                       </button>
                     )}
@@ -172,29 +197,56 @@ export default function LoginForm() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
-                <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email"
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1.5">
+                  Email
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  autoComplete="email"
                   className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition bg-gray-50 placeholder-gray-400"
-                  placeholder="you@example.com" />
+                  placeholder="you@example.com"
+                />
               </div>
+
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
-                  <Link href="/forgot-password" className="text-sm text-purple-600 hover:text-purple-700 font-medium">Forgot?</Link>
+                  <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                    Password
+                  </label>
+                  <Link href="/forgot-password" className="text-sm text-purple-600 hover:text-purple-700 font-medium">
+                    Forgot?
+                  </Link>
                 </div>
-                <input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password"
+                <input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  autoComplete="current-password"
                   className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition bg-gray-50 placeholder-gray-400"
-                  placeholder="Enter your password" />
+                  placeholder="Enter your password"
+                />
               </div>
-              <button type="submit" disabled={loading}
-                className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-4 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md">
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-4 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
+              >
                 {loading ? "Signing in..." : "Sign In"}
               </button>
             </form>
 
             <p className="mt-6 text-center text-sm text-gray-500">
-              Don&apos;t have an account?{" "}
-              <Link href="/register" className="text-purple-600 hover:text-purple-700 font-semibold">Create one</Link>
+              Do not have an account?{" "}
+              <Link href="/register" className="text-purple-600 hover:text-purple-700 font-semibold">
+                Create one
+              </Link>
             </p>
           </div>
         </div>
