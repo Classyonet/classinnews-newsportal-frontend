@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import notificationService from '@/services/notificationService';
+import { ADMIN_API_URL, NEWS_API_ROOT } from '@/lib/api-config';
 
 const POLL_INTERVAL = 5000;
 const LAST_ARTICLE_KEY = 'last_article_notified_id';
@@ -35,7 +36,7 @@ export const useArticleNotifications = () => {
       }
 
       try {
-        const adminApi = process.env.NEXT_PUBLIC_ADMIN_API_URL || 'http://localhost:3002';
+        const adminApi = ADMIN_API_URL;
 
         const settingsRes = await fetch(`${adminApi}/api/settings/public`);
         const settingsData = await settingsRes.json();
@@ -75,7 +76,7 @@ export const useArticleNotifications = () => {
         if (!allowed) return;
 
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3004/api'}/articles/latest?limit=1`
+          `${NEWS_API_ROOT}/articles/latest?limit=1`
         );
 
         if (!response.ok) return;

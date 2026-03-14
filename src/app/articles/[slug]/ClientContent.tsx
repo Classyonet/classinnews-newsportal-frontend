@@ -6,8 +6,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Heart, MessageCircle, Share2, ThumbsUp, ThumbsDown, Facebook, Twitter, Linkedin, UserPlus, Users } from 'lucide-react';
 import AdDisplay from '@/components/AdDisplay';
+import { NEWS_API_URL } from '@/lib/api-config';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3004';
+const API_URL = NEWS_API_URL;
 
 interface Article {
   id: string;

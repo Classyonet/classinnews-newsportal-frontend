@@ -6,9 +6,9 @@ import Image from 'next/image';
 import { getRelativeTime } from '@/lib/timeUtils';
 import AdDisplay from '@/components/AdDisplay';
 import { cachedFetchSafe } from '@/lib/cacheManager';
+import { ADMIN_API_URL, NEWS_API_URL } from '@/lib/api-config';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3004';
-const ADMIN_API_URL = process.env.NEXT_PUBLIC_ADMIN_API_URL || 'http://localhost:3002';
+const API_URL = NEWS_API_URL;
 
 interface Article {
   id: string;

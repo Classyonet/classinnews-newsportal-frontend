@@ -3,8 +3,9 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { cachedFetchSafe } from '@/lib/cacheManager'
+import { NEWS_API_ROOT } from '@/lib/api-config'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3004/api'
+const API_URL = NEWS_API_ROOT
 
 export default function CategoriesPage() {
   const [categories, setCategories] = useState<any[]>([])

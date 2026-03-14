@@ -1,8 +1,9 @@
 "use client"
 
 import { useEffect, useState } from 'react'
+import { NEWS_API_ROOT } from '@/lib/api-config'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3004/api'
+const API_URL = NEWS_API_ROOT
 
 interface Comment {
   id: string

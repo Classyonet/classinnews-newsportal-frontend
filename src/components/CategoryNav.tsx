@@ -4,8 +4,9 @@ import { useEffect, useState, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { NEWS_API_URL } from '@/lib/api-config'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3004';
+const API_URL = NEWS_API_URL;
 
 interface Category {
   id: string

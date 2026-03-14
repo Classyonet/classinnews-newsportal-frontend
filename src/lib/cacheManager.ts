@@ -7,7 +7,8 @@
  * - Automatic stale data cleanup
  */
 
-const ADMIN_API_URL = process.env.NEXT_PUBLIC_ADMIN_API_URL || 'http://localhost:3002'
+import { ADMIN_API_URL } from './api-config'
+
 const CACHE_PREFIX = 'cin_cache_'
 const CACHE_SETTINGS_KEY = 'cin_cache_settings'
 const CACHE_SETTINGS_FETCH_INTERVAL = 300000 // Refetch cache settings every 5 minutes

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Bell, X } from 'lucide-react';
 import notificationService from '@/services/notificationService';
+import { ADMIN_API_URL } from '@/lib/api-config';
 
 type TrackingResult = {
   success: boolean;
@@ -19,7 +20,6 @@ type BrowserHelp = {
   steps: string[];
 };
 
-const ADMIN_API_URL = process.env.NEXT_PUBLIC_ADMIN_API_URL || 'http://localhost:3002';
 const BLOCKED_HELP_KEY = 'notification_blocked_help_dismissed_time';
 const BLOCKED_HELP_REAPPEAR_DAYS = 1;
 const TRACK_TIMEOUT_MS = 8000;

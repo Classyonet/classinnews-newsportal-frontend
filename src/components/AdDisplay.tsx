@@ -1,8 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-
-const ADMIN_API_URL = process.env.NEXT_PUBLIC_ADMIN_API_URL || 'http://localhost:3002';
+import { ADMIN_API_URL } from '@/lib/api-config';
 
 interface AdPlacement {
   id: string;

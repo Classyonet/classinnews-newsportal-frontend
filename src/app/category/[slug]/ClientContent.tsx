@@ -5,8 +5,9 @@ import { useParams, useSearchParams } from 'next/navigation'
 import ArticleGrid from '@/components/ArticleGrid'
 import Link from 'next/link'
 import { cachedFetch } from '@/lib/cacheManager'
+import { NEWS_API_ROOT } from '@/lib/api-config'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3004/api'
+const API_URL = NEWS_API_ROOT
 
 function CategoryPageContent() {
   const params = useParams()
