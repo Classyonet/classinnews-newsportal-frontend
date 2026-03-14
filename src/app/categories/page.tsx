@@ -15,7 +15,7 @@ export default function CategoriesPage() {
     async function fetchCategories() {
       try {
         const data = await cachedFetchSafe(`${API_URL}/categories`, 'categories', [])
-        setCategories(data)
+        setCategories((Array.isArray(data) ? data : []).filter((category: any) => (category?._count?.articles || 0) > 0))
       } catch (error) {
         console.error('Failed to fetch categories:', error)
       } finally {

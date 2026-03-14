@@ -75,11 +75,8 @@ export default function CategoryNav({ hideOnScroll: hideOnScrollProp = false }: 
     fetch(`${API_URL}/api/categories`)
       .then(res => res.json())
       .then(data => {
-        console.log('Categories API response:', data)
-        // API returns array directly, not wrapped
         const apiCategories = Array.isArray(data) ? data : (data.value || data.categories || [])
-        console.log('Parsed categories:', apiCategories)
-        setCategories(apiCategories)
+        setCategories(apiCategories.filter((category: any) => (category?._count?.articles || 0) > 0))
         setLoading(false)
       })
       .catch(err => {

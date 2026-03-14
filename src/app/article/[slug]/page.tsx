@@ -1,7 +1,7 @@
+import { redirect } from 'next/navigation'
+
 export const runtime = 'edge'
 
-import ArticlePage from './ClientContent'
-
-export default function Page() {
-  return <ArticlePage />
+export default function Page({ params }: { params: { slug: string } }) {
+  redirect(`/articles/${params.slug}`)
 }

@@ -7,6 +7,11 @@ import { getRelativeTime } from '@/lib/timeUtils';
 import AdDisplay from '@/components/AdDisplay';
 import { cachedFetchSafe } from '@/lib/cacheManager';
 import { ADMIN_API_URL, NEWS_API_URL } from '@/lib/api-config';
+import {
+  DEFAULT_PUBLIC_SITE_SETTINGS,
+  fetchPublicSiteSettings,
+  type PublicSiteSettings,
+} from '@/lib/public-site-settings';
 
 const API_URL = NEWS_API_URL;
 
@@ -47,17 +52,22 @@ export default function HomePage() {
     effect: 'cube',
     showTitle: true
   });
+  const [newsletterEmail, setNewsletterEmail] = useState('');
+  const [publicSiteSettings, setPublicSiteSettings] = useState<PublicSiteSettings>(DEFAULT_PUBLIC_SITE_SETTINGS);
 
   // Load carousel settings first
   useEffect(() => {
     const loadSettings = async () => {
       try {
-        const res = await fetch(`${ADMIN_API_URL}/api/settings/public/homepage`);
+        const [res, siteSettings] = await Promise.all([
+          fetch(`${ADMIN_API_URL}/api/settings/public/homepage`),
+          fetchPublicSiteSettings(),
+        ]);
         if (!res.ok) {
           throw new Error(`Failed to fetch settings: ${res.status} ${res.statusText}`);
         }
         const data = await res.json();
-        console.log('Loaded homepage settings:', data);
+        setPublicSiteSettings(siteSettings);
         
         const arr = Array.isArray(data.data) ? data.data : [];
         const settingsMap: Record<string, string> = {};
@@ -78,7 +88,6 @@ export default function HomePage() {
               throw new Error(`Failed to fetch articles: ${articlesRes.status}`);
             }
             const articles = await articlesRes.json();
-            console.log('Loaded random carousel articles:', articles);
             const arr = Array.isArray(articles) ? articles : [];
             setCarouselArticles(arr);
           } catch (err) {
@@ -92,6 +101,7 @@ export default function HomePage() {
         }
       } catch (err) {
         console.error('Failed to load homepage settings:', err);
+        setPublicSiteSettings(DEFAULT_PUBLIC_SITE_SETTINGS);
         // Default to disabled if settings can't be loaded
         setCarouselSettings({
           enabled: false,
@@ -151,7 +161,9 @@ export default function HomePage() {
         setMostRead(mostReadArticles);
 
         // Process categories and sort by article count (most articles first)
-        const cats = Array.isArray(categoriesRes) ? categoriesRes : [];
+        const cats = (Array.isArray(categoriesRes) ? categoriesRes : []).filter(
+          (category: any) => (category?._count?.articles || 0) > 0
+        );
         const sortedCats = [...cats].sort((a: any, b: any) => (b._count?.articles || 0) - (a._count?.articles || 0));
         setCategories(sortedCats);
 
@@ -173,27 +185,6 @@ export default function HomePage() {
           setCategoryArticles(catArticlesMap);
         }
 
-        // Also fetch carousel settings in parallel if not already loaded
-        try {
-          const settingsRes = await fetch(`${ADMIN_API_URL}/api/settings/public/homepage`);
-          if (settingsRes.ok) {
-            const settingsData = await settingsRes.json();
-            const arr = Array.isArray(settingsData.data) ? settingsData.data : [];
-            const settingsMap: Record<string, string> = {};
-            arr.forEach((s: any) => settingsMap[s.key] = s.value);
-
-            const enabled = settingsMap['homepage_carousel_enabled'] === 'true';
-            if (enabled && carouselArticles.length === 0) {
-              const articlesRes = await fetch(`${API_URL}/api/articles/random?limit=6`);
-              if (articlesRes.ok) {
-                const articles = await articlesRes.json();
-                setCarouselArticles(Array.isArray(articles) ? articles : []);
-              }
-            }
-          }
-        } catch (err) {
-          console.error('Failed to load carousel settings:', err);
-        }
       } catch (error) {
         console.error('Error loading data:', error);
       } finally {
@@ -221,6 +212,37 @@ export default function HomePage() {
     const diffHours = (now.getTime() - published.getTime()) / (1000 * 60 * 60);
     return diffHours < 24;
   };
+
+  const openNewsletterLink = () => {
+    const rawUrl = publicSiteSettings.homepage_sidebar_newsletter_url.trim();
+    if (!rawUrl || typeof window === 'undefined') {
+      return;
+    }
+
+    const hasProtocol = /^[a-zA-Z][a-zA-Z\d+\-.]*:/.test(rawUrl);
+    const normalizedUrl = hasProtocol ? rawUrl : `https://${rawUrl}`;
+    const email = newsletterEmail.trim();
+    let targetUrl = normalizedUrl;
+
+    if (email) {
+      if (targetUrl.includes('{email}')) {
+        targetUrl = targetUrl.replaceAll('{email}', encodeURIComponent(email));
+      } else if (/^https?:\/\//i.test(targetUrl)) {
+        const separator = targetUrl.includes('?') ? '&' : '?';
+        targetUrl = `${targetUrl}${separator}email=${encodeURIComponent(email)}`;
+      }
+    }
+
+    window.open(targetUrl, '_blank', 'noopener,noreferrer');
+  };
+
+  const socialLinks = [
+    { name: 'Facebook', color: 'bg-blue-600', href: publicSiteSettings.social_facebook_url },
+    { name: 'Twitter', color: 'bg-sky-500', href: publicSiteSettings.social_twitter_url },
+    { name: 'Instagram', color: 'bg-pink-600', href: publicSiteSettings.social_instagram_url },
+    { name: 'YouTube', color: 'bg-red-600', href: publicSiteSettings.social_youtube_url },
+    { name: 'Email', color: 'bg-slate-700', href: publicSiteSettings.social_email_url }
+  ].filter((social) => social.href.trim());
 
   if (loading) {
     return (
@@ -567,33 +589,52 @@ export default function HomePage() {
 
             {/* Newsletter Signup */}
             <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-lg p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-2">📧 Stay Updated</h3>
-              <p className="text-sm text-gray-600 mb-4">Subscribe to our newsletter for daily updates</p>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">
+                {publicSiteSettings.homepage_sidebar_newsletter_title}
+              </h3>
+              <p className="text-sm text-gray-600 mb-4">
+                {publicSiteSettings.homepage_sidebar_newsletter_description}
+              </p>
               <input
                 type="email"
-                placeholder="Your email address"
+                value={newsletterEmail}
+                onChange={(event) => setNewsletterEmail(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' && publicSiteSettings.homepage_sidebar_newsletter_url.trim()) {
+                    openNewsletterLink();
+                  }
+                }}
+                placeholder={publicSiteSettings.homepage_sidebar_newsletter_placeholder}
                 className="w-full px-4 py-2 rounded border border-gray-300 mb-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-              <button className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white py-2 rounded font-semibold hover:from-blue-600 hover:to-indigo-600 transition-all">
-                Subscribe
+              <button
+                type="button"
+                onClick={openNewsletterLink}
+                disabled={!publicSiteSettings.homepage_sidebar_newsletter_url.trim()}
+                className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white py-2 rounded font-semibold hover:from-blue-600 hover:to-indigo-600 transition-all disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {publicSiteSettings.homepage_sidebar_newsletter_button_text}
               </button>
             </div>
 
             {/* Social Media Widget */}
             <div className="bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-100 rounded-lg p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <span>🌐</span> Follow Us
+              <h3 className="text-lg font-bold text-gray-900 mb-4">
+                {publicSiteSettings.homepage_sidebar_social_title}
               </h3>
               <div className="space-y-3">
-                {[
-                  { name: 'Facebook', color: 'bg-blue-600' },
-                  { name: 'Twitter', color: 'bg-sky-500' },
-                  { name: 'Instagram', color: 'bg-pink-600' },
-                  { name: 'YouTube', color: 'bg-red-600' }
-                ].map((social) => (
-                  <a key={social.name} href="#" className={`flex items-center justify-between p-3 ${social.color} text-white rounded hover:opacity-90 transition-all`}>
+                {socialLinks.length === 0 ? (
+                  <p className="text-sm text-gray-500">No social links configured yet.</p>
+                ) : socialLinks.map((social) => (
+                  <a
+                    key={social.name}
+                    href={social.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`flex items-center justify-between p-3 ${social.color} text-white rounded hover:opacity-90 transition-all`}
+                  >
                     <span className="text-sm font-semibold">{social.name}</span>
-                    <span className="text-xs">Follow →</span>
+                    <span className="text-xs">Open →</span>
                   </a>
                 ))}
               </div>
