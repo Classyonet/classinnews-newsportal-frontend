@@ -14,6 +14,16 @@ interface BrandingSettings {
   site_favicon_url: string
 }
 
+const getAdminApiUrl = () => {
+  const url = (process.env.NEXT_PUBLIC_ADMIN_API_URL || '').trim().replace(/\/+$/, '')
+
+  if (!url || url.includes('localhost') || url.includes('onrender.com')) {
+    return 'https://admin-api.147.93.53.76.sslip.io'
+  }
+
+  return url
+}
+
 export default function Header() {
   const [searchQuery, setSearchQuery] = useState('')
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -121,7 +131,7 @@ export default function Header() {
   }, [pathname, mounted])
 
   const fetchBranding = async () => {
-    const ADMIN_API_URL = process.env.NEXT_PUBLIC_ADMIN_API_URL || 'https://classinnews-admin-backend.onrender.com'
+    const ADMIN_API_URL = getAdminApiUrl()
     try {
       const response = await fetch(`${ADMIN_API_URL}/api/settings/branding`)
       if (response.ok) {
