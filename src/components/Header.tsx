@@ -1,10 +1,15 @@
 'use client'
 
 import Link from 'next/link'
-import { Search, Youtube, Facebook, User, Settings, LogOut, ChevronDown, Menu, X } from 'lucide-react'
+import { Search, Youtube, Facebook, Twitter, Instagram, Mail, User, Settings, LogOut, ChevronDown, Menu, X } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import AdDisplay from './AdDisplay'
+import {
+  DEFAULT_PUBLIC_SITE_SETTINGS,
+  fetchPublicSiteSettings,
+  type PublicSiteSettings,
+} from '@/lib/public-site-settings'
 
 interface BrandingSettings {
   siteName: string
@@ -42,6 +47,7 @@ export default function Header() {
     site_mobile_logo_url: '',
     site_favicon_url: ''
   })
+  const [publicSiteSettings, setPublicSiteSettings] = useState<PublicSiteSettings>(DEFAULT_PUBLIC_SITE_SETTINGS)
   const router = useRouter()
   const pathname = usePathname()
 
@@ -111,6 +117,7 @@ export default function Header() {
     setMounted(true)
     checkAuthStatus()
     fetchBranding()
+    fetchSiteSettings()
 
     // Listen for storage changes (for login/logout in other tabs)
     const handleStorageChange = () => {
@@ -145,6 +152,11 @@ export default function Header() {
     }
   }
 
+  const fetchSiteSettings = async () => {
+    const settings = await fetchPublicSiteSettings()
+    setPublicSiteSettings(settings)
+  }
+
   const handleLogout = () => {
     localStorage.removeItem('reader_token')
     localStorage.removeItem('reader_user')
@@ -168,6 +180,39 @@ export default function Header() {
     month: 'long',
     day: 'numeric'
   })
+
+  const socialLinks = [
+    {
+      href: publicSiteSettings.social_youtube_url,
+      title: 'YouTube',
+      className: 'bg-red-600 hover:bg-red-700',
+      icon: <Youtube className="h-4 w-4 text-white" />,
+    },
+    {
+      href: publicSiteSettings.social_facebook_url,
+      title: 'Facebook',
+      className: 'bg-blue-600 hover:bg-blue-700',
+      icon: <Facebook className="h-4 w-4 text-white" />,
+    },
+    {
+      href: publicSiteSettings.social_twitter_url,
+      title: 'X (Twitter)',
+      className: 'bg-gray-900 hover:bg-gray-800',
+      icon: <Twitter className="h-4 w-4 text-white" />,
+    },
+    {
+      href: publicSiteSettings.social_instagram_url,
+      title: 'Instagram',
+      className: 'bg-pink-600 hover:bg-pink-700',
+      icon: <Instagram className="h-4 w-4 text-white" />,
+    },
+    {
+      href: publicSiteSettings.social_email_url,
+      title: 'Email',
+      className: 'bg-slate-700 hover:bg-slate-800',
+      icon: <Mail className="h-4 w-4 text-white" />,
+    },
+  ].filter((social) => social.href.trim())
 
   return (
     <header className="bg-white shadow-sm">
@@ -209,35 +254,18 @@ export default function Header() {
             <div className="flex items-center space-x-3">
               {/* Social Icons */}
               <div className="hidden sm:flex items-center space-x-2">
-                <a 
-                  href="https://youtube.com" 
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-7 h-7 bg-red-600 rounded-sm flex items-center justify-center hover:bg-red-700 transition"
-                  title="YouTube"
-                >
-                  <Youtube className="h-4 w-4 text-white" />
-                </a>
-                <a 
-                  href="https://facebook.com" 
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-7 h-7 bg-blue-600 rounded-sm flex items-center justify-center hover:bg-blue-700 transition"
-                  title="Facebook"
-                >
-                  <Facebook className="h-4 w-4 text-white" />
-                </a>
-                <a 
-                  href="https://twitter.com" 
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-7 h-7 bg-gray-900 rounded-sm flex items-center justify-center hover:bg-gray-800 transition"
-                  title="X (Twitter)"
-                >
-                  <svg className="h-4 w-4 text-white" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-                  </svg>
-                </a>
+                {socialLinks.map((social) => (
+                  <a
+                    key={social.title}
+                    href={social.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`w-7 h-7 rounded-sm flex items-center justify-center transition ${social.className}`}
+                    title={social.title}
+                  >
+                    {social.icon}
+                  </a>
+                ))}
               </div>
 
               {/* Search Icon */}
