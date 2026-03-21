@@ -45,7 +45,7 @@ export default function ArticleGrid({ articles }: ArticleGridProps) {
       {articles.map((article) => (
         <Link 
           key={article.id} 
-          href={`/article/${article.slug}`}
+          href={`/articles/${article.slug}`}
           className="group"
         >
           <article className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300">

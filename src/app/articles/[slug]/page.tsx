@@ -1,6 +1,6 @@
 export const runtime = 'edge'
 
-import ArticlePage from './ClientContent'
+import ArticlePage from './ArticleClientContent'
 
 export default function Page() {
   return <ArticlePage />
