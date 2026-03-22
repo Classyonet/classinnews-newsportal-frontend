@@ -1,6 +1,6 @@
 # Cloudflare Pages Configuration for Next.js SSR
 name = "classinnews-newsportal-frontend"
-compatibility_date = "2024-01-01"
+compatibility_date = "2026-03-22"
 compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = ".vercel/output/static"
 
