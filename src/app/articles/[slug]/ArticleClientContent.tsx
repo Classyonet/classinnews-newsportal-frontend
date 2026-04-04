@@ -7,6 +7,11 @@ import Link from 'next/link';
 import { Heart, MessageCircle, Share2, ThumbsUp, ThumbsDown, Facebook, Twitter, Linkedin, UserPlus, Users } from 'lucide-react';
 import AdDisplay from '@/components/AdDisplay';
 import { NEWS_API_URL } from '@/lib/api-config';
+import {
+  fetchCurrentReader,
+  getStoredReaderUser,
+  readerAuthFetch,
+} from '@/lib/reader-session';
 
 const API_URL = NEWS_API_URL;
 
@@ -82,12 +87,25 @@ export default function ArticlePage() {
 
   // Check authentication status
   useEffect(() => {
-    const token = localStorage.getItem('reader_token');
-    const userStr = localStorage.getItem('reader_user');
-    if (token && userStr) {
-      setIsAuthenticated(true);
-      setCurrentUser(JSON.parse(userStr));
-    }
+    const initializeAuth = async () => {
+      const cachedUser = getStoredReaderUser();
+      if (cachedUser) {
+        setIsAuthenticated(true);
+        setCurrentUser(cachedUser);
+      }
+
+      const user = await fetchCurrentReader();
+      if (user) {
+        setIsAuthenticated(true);
+        setCurrentUser(user);
+        return;
+      }
+
+      setIsAuthenticated(false);
+      setCurrentUser(null);
+    };
+
+    void initializeAuth();
   }, []);
 
   useEffect(() => {
@@ -114,20 +132,14 @@ export default function ArticlePage() {
         
         // If authenticated, fetch like and follow status
         if (isAuthenticated) {
-          const token = localStorage.getItem('reader_token');
-          
           // Fetch like status
-          fetch(`${API_URL}/api/articles/${data.id}/like-status`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-          })
+          readerAuthFetch(`/articles/${data.id}/like-status`)
             .then(res => res.json())
             .then(likeData => setLiked(likeData.liked))
             .catch(err => console.error('Error fetching like status:', err));
           
           // Fetch follow status
-          fetch(`${API_URL}/api/users/${data.author.id}/follow-status`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-          })
+          readerAuthFetch(`/users/${data.author.id}/follow-status`)
             .then(res => res.json())
             .then(followData => {
               setIsFollowing(followData.following);
@@ -166,13 +178,11 @@ export default function ArticlePage() {
     console.log('🔄 Attempting to like article:', article?.id);
 
     try {
-      const token = localStorage.getItem('reader_token');
-      console.log('📝 Token exists:', !!token);
+      console.log('📝 Cookie session available:', isAuthenticated);
       
-      const res = await fetch(`${API_URL}/api/articles/${article?.id}/like`, {
+      const res = await readerAuthFetch(`/articles/${article?.id}/like`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
@@ -209,11 +219,9 @@ export default function ArticlePage() {
     console.log('🔄 Attempting to share article:', article?.id, 'platform:', platform);
 
     try {
-      const token = localStorage.getItem('reader_token');
-      const res = await fetch(`${API_URL}/api/articles/${article?.id}/share`, {
+      const res = await readerAuthFetch(`/articles/${article?.id}/share`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ platform: platform || 'direct' })
@@ -267,11 +275,9 @@ export default function ArticlePage() {
     console.log('🔄 Attempting to follow author:', article?.author.id);
 
     try {
-      const token = localStorage.getItem('reader_token');
-      const res = await fetch(`${API_URL}/api/users/${article?.author.id}/follow`, {
+      const res = await readerAuthFetch(`/users/${article?.author.id}/follow`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
@@ -534,20 +540,18 @@ export default function ArticlePage() {
                     />
                     <button 
                       onClick={async () => {
-                        if (!commentText.trim()) {
-                          alert('Please write a comment');
-                          return;
-                        }
-                        
-                        try {
-                          const token = localStorage.getItem('reader_token');
-                          const res = await fetch(`${API_URL}/api/articles/${article?.id}/comments`, {
-                            method: 'POST',
-                            headers: {
-                              'Authorization': `Bearer ${token}`,
-                              'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({ content: commentText })
+                                        if (!commentText.trim()) {
+                                          alert('Please write a comment');
+                                          return;
+                                        }
+                                        
+                                        try {
+                                          const res = await readerAuthFetch(`/articles/${article?.id}/comments`, {
+                                            method: 'POST',
+                                            headers: {
+                                              'Content-Type': 'application/json'
+                                            },
+                                            body: JSON.stringify({ content: commentText })
                           });
                           
                           const data = await res.json();
@@ -605,11 +609,9 @@ export default function ArticlePage() {
                                   <button
                                     onClick={async () => {
                                       try {
-                                        const token = localStorage.getItem('reader_token');
-                                        const res = await fetch(`${API_URL}/api/comments/${comment.id}/like`, {
+                                        const res = await readerAuthFetch(`/comments/${comment.id}/like`, {
                                           method: 'POST',
                                           headers: {
-                                            'Authorization': `Bearer ${token}`,
                                             'Content-Type': 'application/json'
                                           }
                                         });
@@ -682,11 +684,9 @@ export default function ArticlePage() {
                                       }
                                       
                                       try {
-                                        const token = localStorage.getItem('reader_token');
-                                        const res = await fetch(`${API_URL}/api/articles/${article?.id}/comments`, {
+                                        const res = await readerAuthFetch(`/articles/${article?.id}/comments`, {
                                           method: 'POST',
                                           headers: {
-                                            'Authorization': `Bearer ${token}`,
                                             'Content-Type': 'application/json'
                                           },
                                           body: JSON.stringify({ 
@@ -747,11 +747,9 @@ export default function ArticlePage() {
                                             <button
                                               onClick={async () => {
                                                 try {
-                                                  const token = localStorage.getItem('reader_token');
-                                                  const res = await fetch(`${API_URL}/api/comments/${reply.id}/like`, {
+                                                  const res = await readerAuthFetch(`/comments/${reply.id}/like`, {
                                                     method: 'POST',
                                                     headers: {
-                                                      'Authorization': `Bearer ${token}`,
                                                       'Content-Type': 'application/json'
                                                     }
                                                   });

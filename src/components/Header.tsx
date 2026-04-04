@@ -10,6 +10,12 @@ import {
   fetchPublicSiteSettings,
   type PublicSiteSettings,
 } from '@/lib/public-site-settings'
+import {
+  READER_AUTH_EVENT,
+  fetchCurrentReader,
+  getStoredReaderUser,
+  logoutReaderSession,
+} from '@/lib/reader-session'
 
 interface BrandingSettings {
   siteName: string
@@ -91,49 +97,53 @@ export default function Header() {
   }, [isMobile])
 
   // Check auth status
-  const checkAuthStatus = () => {
-    const token = localStorage.getItem('reader_token')
-    const userStr = localStorage.getItem('reader_user')
-    
-    if (token && userStr) {
-      try {
-        const user = JSON.parse(userStr)
-        setCurrentUser(user)
-        setIsAuthenticated(true)
-      } catch (error) {
-        console.error('Error parsing user data:', error)
-        localStorage.removeItem('reader_token')
-        localStorage.removeItem('reader_user')
-        setIsAuthenticated(false)
-        setCurrentUser(null)
-      }
+  const checkAuthStatus = async () => {
+    const cachedUser = getStoredReaderUser()
+    if (cachedUser) {
+      setCurrentUser(cachedUser)
+      setIsAuthenticated(true)
     } else {
       setIsAuthenticated(false)
       setCurrentUser(null)
     }
+
+    const user = await fetchCurrentReader()
+    if (user) {
+      setCurrentUser(user)
+      setIsAuthenticated(true)
+      return
+    }
+
+    setIsAuthenticated(false)
+    setCurrentUser(null)
   }
 
   useEffect(() => {
     setMounted(true)
-    checkAuthStatus()
+    void checkAuthStatus()
     fetchBranding()
     fetchSiteSettings()
 
     // Listen for storage changes (for login/logout in other tabs)
     const handleStorageChange = () => {
-      checkAuthStatus()
+      void checkAuthStatus()
+    }
+    const handleAuthChanged = () => {
+      void checkAuthStatus()
     }
     window.addEventListener('storage', handleStorageChange)
+    window.addEventListener(READER_AUTH_EVENT, handleAuthChanged)
     
     return () => {
       window.removeEventListener('storage', handleStorageChange)
+      window.removeEventListener(READER_AUTH_EVENT, handleAuthChanged)
     }
   }, [])
 
   // Re-check auth when pathname changes (after navigation)
   useEffect(() => {
     if (mounted) {
-      checkAuthStatus()
+      void checkAuthStatus()
     }
   }, [pathname, mounted])
 
@@ -157,9 +167,8 @@ export default function Header() {
     setPublicSiteSettings(settings)
   }
 
-  const handleLogout = () => {
-    localStorage.removeItem('reader_token')
-    localStorage.removeItem('reader_user')
+  const handleLogout = async () => {
+    await logoutReaderSession()
     setIsAuthenticated(false)
     setCurrentUser(null)
     setShowUserMenu(false)

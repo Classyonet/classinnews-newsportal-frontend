@@ -11,6 +11,7 @@ import AdDisplay from '@/components/AdDisplay'
 import { cachedFetch } from '@/lib/cacheManager'
 import dynamic from 'next/dynamic'
 import { NEWS_API_ROOT } from '@/lib/api-config'
+import { getStoredReaderUser, readerAuthFetch } from '@/lib/reader-session'
 
 const ArticleComments = dynamic(() => import('@/components/ArticleComments'), { ssr: false })
 
@@ -214,10 +215,9 @@ export default function ArticlePage() {
                 <div className="mt-8">
                   <div className="flex items-center gap-3">
                     <button onClick={async () => {
-                      const token = localStorage.getItem('reader_token')
-                      if (!token) { alert('Please login to like articles'); return }
+                      if (!getStoredReaderUser()) { alert('Please login to like articles'); return }
                       try {
-                        const res = await fetch(`${API_URL}/articles/${article.slug}/like`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } })
+                        const res = await readerAuthFetch(`/articles/${article.slug}/like`, { method: 'POST' })
                         if (!res.ok) throw new Error('Failed to like')
                         const d = await res.json();
                         alert('Liked! Total likes: ' + d.likesCount)

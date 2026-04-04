@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Bell, X } from 'lucide-react';
 import notificationService from '@/services/notificationService';
 import { ADMIN_API_URL } from '@/lib/api-config';
+import { getStoredReaderUser } from '@/lib/reader-session';
 
 type TrackingResult = {
   success: boolean;
@@ -170,18 +171,10 @@ export default function NotificationConsent() {
     localStorage.removeItem('notification_denied_time');
     window.dispatchEvent(new Event(SUBSCRIPTION_UPDATED_EVENT));
 
-    const userStr = localStorage.getItem('reader_user');
     let userId: string | null = null;
     let pushSubscription: PushSubscription | null = null;
 
-    if (userStr) {
-      try {
-        const user = JSON.parse(userStr);
-        userId = user?.id || null;
-      } catch {
-        userId = null;
-      }
-    }
+    userId = getStoredReaderUser()?.id || null;
     pushSubscription = await notificationService.subscribeToPush(userId || 'anonymous');
 
     const trackingResult = await trackSubscription(userId, pushSubscription);

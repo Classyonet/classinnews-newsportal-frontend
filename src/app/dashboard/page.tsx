@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { User, Mail, Phone, Calendar, Heart, Share2, MessageSquare, Users, Settings, ArrowLeft } from 'lucide-react'
+import { fetchCurrentReader, readerAuthFetch } from '@/lib/reader-session'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3004'
 const API_URL = `${API_BASE}/api`
@@ -21,36 +22,25 @@ export default function DashboardPage() {
   const router = useRouter()
 
   useEffect(() => {
-    // Check authentication
-    const token = localStorage.getItem('reader_token')
-    const userStr = localStorage.getItem('reader_user')
+    const loadSession = async () => {
+      const user = await fetchCurrentReader()
+      if (!user) {
+        router.push('/login')
+        return
+      }
 
-    if (!token || !userStr) {
-      router.push('/login')
-      return
-    }
-
-    try {
-      const user = JSON.parse(userStr)
       setCurrentUser(user)
       setLoading(false)
-      
-      // Fetch user stats from backend
-      fetchUserStats(token)
-    } catch (error) {
-      console.error('Error loading user data:', error)
-      router.push('/login')
+      await fetchUserStats()
     }
+
+    void loadSession()
   }, [router])
 
-  const fetchUserStats = async (token: string) => {
+  const fetchUserStats = async () => {
     try {
       setStatsLoading(true)
-      const response = await fetch(`${API_URL}/users/me/stats`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
+      const response = await readerAuthFetch('/users/me/stats')
 
       if (response.ok) {
         const data = await response.json()

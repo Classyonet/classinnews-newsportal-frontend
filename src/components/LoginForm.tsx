@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { storeReaderUser } from "@/lib/reader-session";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3004";
 const API_URL = `${API_BASE}/api`;
@@ -9,6 +10,7 @@ const API_URL = `${API_BASE}/api`;
 export default function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [errorCode, setErrorCode] = useState("");
@@ -82,6 +84,7 @@ export default function LoginForm() {
       const response = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ email, password }),
       });
       const data = await response.json();
@@ -91,11 +94,10 @@ export default function LoginForm() {
         throw new Error(data.error || data.message || "Login failed");
       }
 
-      const token = data.token || data.data?.token || "";
       const user = data.user || data.data?.user || {};
-
-      localStorage.setItem("reader_token", token);
-      localStorage.setItem("reader_user", JSON.stringify(user));
+      if (user?.id) {
+        storeReaderUser(user);
+      }
       window.location.href = "/";
     } catch (err: any) {
       setError(err.message || "Login failed");
@@ -105,55 +107,55 @@ export default function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen flex" data-auth-redesign="reader-login-v3">
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-purple-700 via-indigo-700 to-blue-800 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-white rounded-full blur-3xl" />
-          <div className="absolute bottom-20 right-10 w-96 h-96 bg-white rounded-full blur-3xl" />
+    <div className="min-h-screen flex font-sans" data-auth-redesign="reader-login-v4">
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute top-16 left-12 w-80 h-80 bg-white rounded-full blur-3xl" />
+          <div className="absolute bottom-16 right-12 w-96 h-96 bg-white rounded-full blur-3xl" />
         </div>
-        <div className="relative z-10 flex flex-col justify-center px-16 text-white">
+        <div className="relative z-10 flex flex-col justify-center px-20 text-white">
           <h1 className="text-5xl font-extrabold mb-4 leading-tight">ClassinNews</h1>
-          <p className="text-xl text-purple-100 mb-8 leading-relaxed">
+          <p className="text-xl text-indigo-100 mb-8 leading-relaxed">
             Your trusted source for quality news and insightful journalism.
           </p>
-          <div className="space-y-4">
+          <ul className="space-y-4">
             {[
               "Personalized news feed",
               "Save and bookmark articles",
               "Engage with the community",
             ].map((item) => (
-              <div key={item} className="flex items-center gap-3">
+              <li key={item} className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
-                <span className="text-purple-100">{item}</span>
-              </div>
+                <span className="text-indigo-100">{item}</span>
+              </li>
             ))}
-          </div>
+          </ul>
         </div>
       </div>
 
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 bg-gray-50">
-        <div className="w-full max-w-md">
-          <div className="mb-8">
-            <Link href="/" className="text-sm text-gray-500 hover:text-purple-600 transition-colors">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 sm:p-16 bg-gray-50">
+        <div className="w-full max-w-lg">
+          <div className="mb-6">
+            <Link href="/" className="text-sm text-gray-500 hover:text-indigo-600 transition-colors">
               &larr; Back to Home
             </Link>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
+          <div className="bg-white rounded-3xl shadow-xl border border-gray-200 p-10">
             <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-gray-900">Welcome back</h2>
-              <p className="text-gray-500 mt-1">Sign in to your reader account</p>
+              <h2 className="text-3xl font-bold text-gray-900">Welcome back</h2>
+              <p className="text-gray-500 mt-2">Sign in to your reader account</p>
             </div>
 
             <button
               type="button"
               onClick={handleGoogleLogin}
               disabled={!googleEnabled}
-              className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white border-2 border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all font-medium text-gray-700 disabled:opacity-40 disabled:cursor-not-allowed mb-6"
+              className="w-full flex items-center justify-center gap-3 px-5 py-3 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-all font-medium text-gray-700 disabled:opacity-40 disabled:cursor-not-allowed mb-6"
             >
               <svg className="h-5 w-5" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -185,7 +187,7 @@ export default function LoginForm() {
                         type="button"
                         onClick={handleResendVerification}
                         disabled={resending}
-                        className="w-full mt-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors disabled:opacity-50"
+                        className="w-full mt-1 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors disabled:opacity-50"
                       >
                         {resending ? "Sending..." : "Resend Verification Email"}
                       </button>
@@ -195,56 +197,88 @@ export default function LoginForm() {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Email
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                  Email address
                 </label>
-                <input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  autoComplete="email"
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition bg-gray-50 placeholder-gray-400"
-                  placeholder="you@example.com"
-                />
+                <div className="relative">
+                  <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg className="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M2.94 6.94a1 1 0 011.06-.24l.09.04L10 10.879l5.91-3.998a1 1 0 011.12 1.664l-.1.08-6 4a1 1 0 01-1.12 0l-6-4a1 1 0 01-.24-1.06z" />
+                      <path d="M18 8.118l-7.293 4.927a3 3 0 01-3.414 0L0 8.118V14a2 2 0 002 2h16a2 2 0 01-2-2V8.118z" />
+                    </svg>
+                  </span>
+                  <input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    autoComplete="email"
+                    className="w-full pl-10 px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition bg-gray-50 placeholder-gray-400"
+                    placeholder="you@example.com"
+                  />
+                </div>
               </div>
 
               <div>
-                <div className="flex items-center justify-between mb-1.5">
+                <div className="flex items-center justify-between mb-1">
                   <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                     Password
                   </label>
-                  <Link href="/forgot-password" className="text-sm text-purple-600 hover:text-purple-700 font-medium">
+                  <Link href="/forgot-password" className="text-sm text-indigo-600 hover:text-indigo-700 font-medium">
                     Forgot?
                   </Link>
                 </div>
-                <input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  autoComplete="current-password"
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition bg-gray-50 placeholder-gray-400"
-                  placeholder="Enter your password"
-                />
+                <div className="relative">
+                  <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg className="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M5 8a5 5 0 1110 0v3h1a2 2 0 012 2v5a2 2 0 01-2 2H4a2 2 0 01-2-2v-5a2 2 0 012-2h1V8z" clipRule="evenodd" />
+                    </svg>
+                  </span>
+                  <input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    autoComplete="current-password"
+                    className="w-full pl-10 pr-10 px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition bg-gray-50 placeholder-gray-400"
+                    placeholder="Enter your password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 focus:outline-none"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? (
+                      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-5.523 0-10-4.477-10-10a9.958 9.958 0 012.175-6.125M3 3l18 18" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.879 9.879a3 3 0 014.242 4.242" />
+                      </svg>
+                    ) : (
+                      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
               </div>
 
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-4 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
+                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-4 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
               >
                 {loading ? "Signing in..." : "Sign In"}
               </button>
             </form>
 
             <p className="mt-6 text-center text-sm text-gray-500">
-              Do not have an account?{" "}
-              <Link href="/register" className="text-purple-600 hover:text-purple-700 font-semibold">
+              Don’t have an account? <Link href="/register" className="text-indigo-600 hover:text-indigo-700 font-semibold">
                 Create one
               </Link>
             </p>

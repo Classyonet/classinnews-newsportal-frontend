@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { NEWS_API_ROOT } from '@/lib/api-config'
+import { getStoredReaderUser, readerAuthFetch } from '@/lib/reader-session'
 
 const API_URL = NEWS_API_ROOT
 
@@ -32,16 +33,15 @@ export default function ArticleComments({ slug }: { slug: string }) {
   useEffect(() => { load() }, [slug])
 
   const postComment = async () => {
-    const token = localStorage.getItem('reader_token')
-    if (!token) {
+    if (!getStoredReaderUser()) {
       alert('Please login to post a comment')
       return
     }
     if (!newComment.trim()) return
     try {
-      const res = await fetch(`${API_URL}/articles/${slug}/comments`, {
+      const res = await readerAuthFetch(`/articles/${slug}/comments`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content: newComment })
       })
       const data = await res.json()

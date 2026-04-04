@@ -4,7 +4,7 @@ import RegisterForm from '@/components/RegisterForm'
 
 export default function RegisterPage() {
   return (
-    <div data-auth-design="v2-publisher-style-register">
+    <div data-auth-redesign="reader-auth-v4">
       <RegisterForm />
     </div>
   )

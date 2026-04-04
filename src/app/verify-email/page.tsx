@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { CheckCircle, XCircle, Loader2, Mail } from 'lucide-react'
+import { storeReaderUser } from '@/lib/reader-session'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3004'
 const API_URL = `${API_BASE}/api`
@@ -39,17 +40,17 @@ function VerifyEmailContent() {
 
   const verifyEmail = async (token: string) => {
     try {
-      const response = await fetch(`${API_URL}/auth/verify-email?token=${token}`)
+      const response = await fetch(`${API_URL}/auth/verify-email?token=${token}`, {
+        credentials: 'include',
+      })
       const data = await response.json()
 
       if (response.ok) {
         setStatus('success')
         setMessage(data.message || 'Email verified successfully!')
 
-        // Store auth token if provided
-        if (data.token) {
-          localStorage.setItem('reader_token', data.token)
-          localStorage.setItem('reader_user', JSON.stringify(data.user))
+        if (data.user?.id) {
+          storeReaderUser(data.user)
         }
 
         // Redirect to home after 3 seconds

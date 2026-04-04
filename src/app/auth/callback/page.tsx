@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
+import { fetchCurrentReader } from '@/lib/reader-session'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3004'
 const API_URL = `${API_BASE}/api`
@@ -14,7 +15,6 @@ function CallbackContent() {
   const [message, setMessage] = useState('Processing your login...')
 
   useEffect(() => {
-    const token = searchParams.get('token')
     const provider = searchParams.get('provider')
     const isNew = searchParams.get('isNew')
     const error = searchParams.get('error')
@@ -26,37 +26,18 @@ function CallbackContent() {
       return
     }
 
-    if (!token) {
-      setStatus('error')
-      setMessage('No authentication token received')
-      setTimeout(() => router.push('/login'), 3000)
-      return
-    }
-
-    // Store the token
-    localStorage.setItem('reader_token', token)
-
-    // Fetch user data
-    fetch(`${API_URL}/auth/me`, {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    })
-      .then(res => res.json())
-      .then(data => {
-        if (data.user || data.data?.user) {
-          const user = data.user || data.data.user
-          localStorage.setItem('reader_user', JSON.stringify(user))
-          setStatus('success')
-          setMessage(`Welcome${isNew === 'true' ? '' : ' back'}, ${user.username || user.email}!`)
-          
-          // Redirect to home page after a short delay
-          setTimeout(() => {
-            window.location.href = '/'
-          }, 1500)
-        } else {
+    fetchCurrentReader()
+      .then(user => {
+        if (!user) {
           throw new Error('Failed to get user data')
         }
+
+        setStatus('success')
+        setMessage(`Welcome${isNew === 'true' ? '' : ' back'}, ${user.username || user.email}!`)
+        
+        setTimeout(() => {
+          window.location.href = '/'
+        }, 1500)
       })
       .catch(err => {
         console.error('Error fetching user:', err)

@@ -4,6 +4,10 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, User, Mail, Phone, Lock, Save, AlertCircle, CheckCircle } from 'lucide-react'
+import {
+  fetchCurrentReader,
+  storeReaderUser,
+} from '@/lib/reader-session'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3004/api'
 
@@ -24,26 +28,21 @@ export default function SettingsPage() {
   const router = useRouter()
 
   useEffect(() => {
-    // Check authentication
-    const token = localStorage.getItem('reader_token')
-    const userStr = localStorage.getItem('reader_user')
+    const loadSession = async () => {
+      const user = await fetchCurrentReader()
+      if (!user) {
+        router.push('/login')
+        return
+      }
 
-    if (!token || !userStr) {
-      router.push('/login')
-      return
-    }
-
-    try {
-      const user = JSON.parse(userStr)
       setCurrentUser(user)
       setUsername(user.username || '')
       setEmail(user.email || '')
       setPhoneNumber(user.phoneNumber || '')
       setLoading(false)
-    } catch (error) {
-      console.error('Error loading user data:', error)
-      router.push('/login')
     }
+
+    void loadSession()
   }, [router])
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
@@ -52,8 +51,6 @@ export default function SettingsPage() {
     setMessage(null)
 
     try {
-      const token = localStorage.getItem('reader_token')
-      
       // TODO: Implement backend API endpoint for profile update
       // const res = await fetch(`${API_URL}/users/profile`, {
       //   method: 'PUT',
@@ -72,7 +69,7 @@ export default function SettingsPage() {
         phoneNumber: phoneNumber || currentUser.phoneNumber
       }
       
-      localStorage.setItem('reader_user', JSON.stringify(updatedUser))
+      storeReaderUser(updatedUser)
       setCurrentUser(updatedUser)
       
       setMessage({ type: 'success', text: 'Profile updated successfully!' })
@@ -108,8 +105,6 @@ export default function SettingsPage() {
     }
 
     try {
-      const token = localStorage.getItem('reader_token')
-      
       // TODO: Implement backend API endpoint for password change
       // const res = await fetch(`${API_URL}/users/change-password`, {
       //   method: 'POST',
