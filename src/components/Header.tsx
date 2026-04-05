@@ -10,6 +10,7 @@ import {
   fetchPublicSiteSettings,
   type PublicSiteSettings,
 } from '@/lib/public-site-settings'
+import { ADMIN_API_URL } from '@/lib/api-config'
 import {
   READER_AUTH_EVENT,
   fetchCurrentReader,
@@ -23,16 +24,6 @@ interface BrandingSettings {
   site_logo_url: string
   site_mobile_logo_url: string
   site_favicon_url: string
-}
-
-const getAdminApiUrl = () => {
-  const url = (process.env.NEXT_PUBLIC_ADMIN_API_URL || '').trim().replace(/\/+$/, '')
-
-  if (!url || url.includes('localhost') || url.includes('onrender.com')) {
-    return 'https://admin-api.147.93.53.76.sslip.io'
-  }
-
-  return url
 }
 
 export default function Header() {
@@ -148,7 +139,6 @@ export default function Header() {
   }, [pathname, mounted])
 
   const fetchBranding = async () => {
-    const ADMIN_API_URL = getAdminApiUrl()
     try {
       const response = await fetch(`${ADMIN_API_URL}/api/settings/branding`)
       if (response.ok) {

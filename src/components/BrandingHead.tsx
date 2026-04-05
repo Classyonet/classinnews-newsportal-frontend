@@ -1,16 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-
-const ADMIN_API_URL = (() => {
-  const url = (process.env.NEXT_PUBLIC_ADMIN_API_URL || '').trim().replace(/\/+$/, '')
-
-  if (!url || url.includes('localhost') || url.includes('onrender.com')) {
-    return 'https://admin-api.147.93.53.76.sslip.io'
-  }
-
-  return url
-})()
+import { ADMIN_API_URL } from '@/lib/api-config'
 
 export function BrandingHead() {
   useEffect(() => {

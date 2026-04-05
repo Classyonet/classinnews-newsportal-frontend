@@ -6,4 +6,5 @@ pages_build_output_dir = ".vercel/output/static"
 
 # Environment variables (set in Cloudflare Dashboard)
 # [vars]
-# NEXT_PUBLIC_API_URL = "https://classinnews-newsportal-backend.onrender.com"
+# NEXT_PUBLIC_API_URL = "https://news-api.classinnews.com"
+# NEXT_PUBLIC_ADMIN_API_URL = "https://admin-api.classinnews.com"
