@@ -9,8 +9,6 @@ import {
   storeReaderUser,
 } from '@/lib/reader-session'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3004/api'
-
 export default function SettingsPage() {
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)

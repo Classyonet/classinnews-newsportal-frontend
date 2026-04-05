@@ -5,9 +5,6 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 import { fetchCurrentReader } from '@/lib/reader-session'
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3004'
-const API_URL = `${API_BASE}/api`
-
 function CallbackContent() {
   const router = useRouter()
   const searchParams = useSearchParams()

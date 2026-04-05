@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { NEWS_API_ROOT } from "@/lib/api-config";
 import { storeReaderUser } from "@/lib/reader-session";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3004";
-const API_URL = `${API_BASE}/api`;
+const API_URL = NEWS_API_ROOT;
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");

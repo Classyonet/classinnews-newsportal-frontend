@@ -6,9 +6,6 @@ import Link from 'next/link'
 import { User, Mail, Phone, Calendar, Heart, Share2, MessageSquare, Users, Settings, ArrowLeft } from 'lucide-react'
 import { fetchCurrentReader, readerAuthFetch } from '@/lib/reader-session'
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3004'
-const API_URL = `${API_BASE}/api`
-
 export default function DashboardPage() {
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
