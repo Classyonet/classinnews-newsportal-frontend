@@ -2,6 +2,7 @@ export const runtime = 'edge'
 
 import type { Metadata } from 'next'
 import ArticlePage from './ArticleClientContent'
+import OpenInAppRedirect from './OpenInAppRedirect'
 import { NEWS_API_ROOT } from '@/lib/api-config'
 
 type ArticleMetadataRecord = {
@@ -117,6 +118,11 @@ export async function generateMetadata({
   }
 }
 
-export default function Page() {
-  return <ArticlePage />
+export default function Page({ params }: { params: { slug: string } }) {
+  return (
+    <>
+      <OpenInAppRedirect slug={decodeURIComponent(params.slug)} />
+      <ArticlePage />
+    </>
+  )
 }
