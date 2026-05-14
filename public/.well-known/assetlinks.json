@@ -1,0 +1,26 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.example.classynews_app",
+      "sha256_cert_fingerprints": [
+        "A3:18:C0:44:5B:4D:92:6A:4F:17:39:B2:7F:DD:2C:E2:EB:1E:F1:37:87:D5:62:B4:2C:08:9B:36:51:9E:82:0F"
+      ]
+    }
+  },
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.classyonet.classynewsapp",
+      "sha256_cert_fingerprints": [
+        "A3:18:C0:44:5B:4D:92:6A:4F:17:39:B2:7F:DD:2C:E2:EB:1E:F1:37:87:D5:62:B4:2C:08:9B:36:51:9E:82:0F"
+      ]
+    }
+  }
+]
