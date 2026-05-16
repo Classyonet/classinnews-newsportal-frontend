@@ -49,7 +49,7 @@ export default function Footer() {
           <div>
             <div className="mb-4 flex items-center space-x-2">
               <Newspaper className="h-6 w-6 text-primary-400" />
-              <span className="text-xl font-bold text-white">ClassinNews</span>
+              <span className="text-xl font-bold text-white">Classy News</span>
             </div>
             <p className="text-sm">
               Your trusted source for quality journalism and engaging stories from around the world.
@@ -122,7 +122,7 @@ export default function Footer() {
             <span className="text-gray-600">•</span>
             <Link href="/data-deletion" className="hover:text-primary-400">Data Deletion</Link>
           </div>
-          <p>&copy; {new Date().getFullYear()} ClassinNews. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} Classy News. All rights reserved.</p>
         </div>
       </div>
     </footer>

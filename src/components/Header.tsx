@@ -38,7 +38,7 @@ export default function Header() {
   const [hideHeader, setHideHeader] = useState(false)
   const lastScrollY = useRef(0)
   const [branding, setBranding] = useState<BrandingSettings>({
-    siteName: 'ClassinNews',
+    siteName: 'Classy News',
     siteDescription: 'Your Source for Quality News',
     site_logo_url: '',
     site_mobile_logo_url: '',

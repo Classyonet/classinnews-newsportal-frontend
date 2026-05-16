@@ -270,7 +270,7 @@ export default function NotificationConsent() {
 
     setTimeout(async () => {
       try {
-        await notificationService.showNotification('Welcome to ClassinNews!', {
+        await notificationService.showNotification('Welcome to Classy News!', {
           body: 'You will receive notifications for new articles.',
           icon: '/logo.png',
         });
@@ -366,7 +366,7 @@ export default function NotificationConsent() {
                 <Bell className="w-8 h-8 text-white" />
               </div>
 
-              <h2 className="text-2xl font-bold text-center text-gray-900 mb-2">Stay Updated with ClassinNews</h2>
+              <h2 className="text-2xl font-bold text-center text-gray-900 mb-2">Stay Updated with Classy News</h2>
               <p className="text-center text-gray-600 mb-6">
                 Get notified instantly when new articles are published. Never miss breaking news.
               </p>

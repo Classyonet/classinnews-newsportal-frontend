@@ -114,7 +114,7 @@ export default function LoginForm() {
           <div className="absolute bottom-16 right-12 w-96 h-96 bg-white rounded-full blur-3xl" />
         </div>
         <div className="relative z-10 flex flex-col justify-center px-20 text-white">
-          <h1 className="text-5xl font-extrabold mb-4 leading-tight">ClassinNews</h1>
+          <h1 className="text-5xl font-extrabold mb-4 leading-tight">Classy News</h1>
           <p className="text-xl text-indigo-100 mb-8 leading-relaxed">
             Your trusted source for quality news and insightful journalism.
           </p>

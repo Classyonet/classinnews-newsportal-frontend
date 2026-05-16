@@ -13,7 +13,7 @@ import { BrandingHead } from '@/components/BrandingHead'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'ClassinNews - Your Source for Quality News',
+  title: 'Classy News - Your Source for Quality News',
   description: 'Your Source for Quality News',
 }
 

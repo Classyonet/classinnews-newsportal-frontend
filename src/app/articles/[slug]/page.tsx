@@ -65,8 +65,8 @@ export async function generateMetadata({
 
   if (!article) {
     return {
-      title: 'Article | ClassinNews',
-      description: 'Read the latest article on ClassinNews.',
+      title: 'Article | Classy News',
+      description: 'Read the latest article on Classy News.',
       alternates: {
         canonical: canonicalUrl,
       },
@@ -79,14 +79,14 @@ export async function generateMetadata({
     stripHtml(article.excerpt) ||
     stripHtml(article.description) ||
     contentPreview ||
-    'Read the latest article on ClassinNews.'
+    'Read the latest article on Classy News.'
   const imageUrl = article.featuredImageUrl?.trim() || undefined
   const authorName =
     article.author?.name?.trim() || article.author?.username?.trim() || undefined
   const section = article.category?.name?.trim() || undefined
 
   return {
-    title: `${title} | ClassinNews`,
+    title: `${title} | Classy News`,
     description,
     alternates: {
       canonical: canonicalUrl,
@@ -95,7 +95,7 @@ export async function generateMetadata({
       title,
       description,
       url: canonicalUrl,
-      siteName: 'ClassinNews',
+      siteName: 'Classy News',
       type: 'article',
       publishedTime: article.publishedAt,
       authors: authorName ? [authorName] : undefined,

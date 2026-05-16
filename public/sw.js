@@ -15,7 +15,7 @@ self.addEventListener('push', (event) => {
   const data = event.data ? event.data.json() : {};
   const title = data.title || 'New Article Published';
   const options = {
-    body: data.body || 'A new article has been published on ClassinNews',
+    body: data.body || 'A new article has been published on Classy News',
     icon: data.icon || '/logo.svg',
     badge: '/badge.svg',
     tag: data.tag || 'article-notification',
