@@ -263,6 +263,14 @@ export default function HomePage() {
         <div className="hidden md:block bg-white border border-gray-200 rounded-lg p-3 mb-6">
           <AdDisplay position="top" pageType="homepage" className="flex justify-center" />
         </div>
+
+        <section className="mb-6 border-l-4 border-red-600 bg-white px-5 py-4 shadow-sm">
+          <h1 className="text-2xl font-black text-gray-950">Classy News</h1>
+          <p className="mt-2 max-w-4xl text-sm leading-6 text-gray-700">
+            Classy News is a news application and website that helps readers follow latest news, breaking stories,
+            politics, entertainment, sports, lifestyle, videos, TV and radio updates in one place.
+          </p>
+        </section>
         
         {/* Main Grid Layout - Continuous 2/3 + 1/3 */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">

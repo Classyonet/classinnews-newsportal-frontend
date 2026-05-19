@@ -13,8 +13,9 @@ import { BrandingHead } from '@/components/BrandingHead'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Classy News - Your Source for Quality News',
-  description: 'Your Source for Quality News',
+  title: 'Classy News - Latest News, Trends, Videos, TV and Radio',
+  description:
+    'Classy News is a news application and website for reading latest stories, trending reports, entertainment, sports, videos, TV and radio updates from Classy News.',
 }
 
 export default function RootLayout({
