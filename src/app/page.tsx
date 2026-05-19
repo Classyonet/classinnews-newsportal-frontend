@@ -264,12 +264,27 @@ export default function HomePage() {
           <AdDisplay position="top" pageType="homepage" className="flex justify-center" />
         </div>
 
-        <section className="mb-6 border-l-4 border-red-600 bg-white px-5 py-4 shadow-sm">
-          <h1 className="text-2xl font-black text-gray-950">Classy News</h1>
-          <p className="mt-2 max-w-4xl text-sm leading-6 text-gray-700">
-            Classy News is a news application and website that helps readers follow latest news, breaking stories,
-            politics, entertainment, sports, lifestyle, videos, TV and radio updates in one place.
-          </p>
+        {/* App Purpose Section — required for Google OAuth branding verification */}
+        <section id="about-classy-news" className="mb-6 bg-white shadow-sm rounded-lg overflow-hidden border border-gray-100">
+          <div className="border-l-4 border-red-600 px-5 py-5">
+            <h1 className="text-2xl font-black text-gray-950 mb-1">Classy News</h1>
+            <p className="text-xs font-semibold uppercase tracking-widest text-red-600 mb-3">Your trusted news app &amp; website</p>
+            <p className="text-sm leading-6 text-gray-700 max-w-4xl">
+              <strong>Classy News</strong> is a mobile news application and web portal that gives readers instant access
+              to the latest breaking news, trending stories, politics, business, entertainment, sports, and lifestyle
+              content — all in one place. The <strong>Classy News app</strong> is available for download on Android
+              and delivers real-time push notifications for important stories so you never miss a headline. On the web,
+              classinnews.com serves live news articles, editorial content, live TV streams, and radio broadcasts to
+              keep you informed around the clock.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {['Breaking News','Politics','Entertainment','Sports','Lifestyle','Live TV','Radio','Android App'].map((tag) => (
+                <span key={tag} className="inline-block bg-gray-100 text-gray-600 text-xs font-medium px-2.5 py-1 rounded-full">
+                  {tag}
+                </span>
+              ))}
+            </div>
+          </div>
         </section>
         
         {/* Main Grid Layout - Continuous 2/3 + 1/3 */}
