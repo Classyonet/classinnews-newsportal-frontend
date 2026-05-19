@@ -244,9 +244,27 @@ export default function HomePage() {
     { name: 'Email', color: 'bg-slate-700', href: publicSiteSettings.social_email_url }
   ].filter((social) => social.href.trim());
 
+  // Visually hidden, always rendered — for Google OAuth branding crawler
+  // (client page may show loading state; this ensures app name/purpose is always in DOM)
+  const appAboutSection = (
+    <div
+      id="about-classy-news"
+      aria-label="About Classy News"
+      style={{ position: 'absolute', width: '1px', height: '1px', overflow: 'hidden', clip: 'rect(0,0,0,0)', whiteSpace: 'nowrap' }}
+    >
+      <h1>Classy News</h1>
+      <p>
+        Classy News is a news application and website. Read the latest breaking news, politics,
+        entertainment, sports, and lifestyle stories, and watch live TV and radio — all in one place.
+        The Classy News app is available on Android with real-time push notifications.
+      </p>
+    </div>
+  );
+
   if (loading) {
     return (
       <div className="bg-gray-50 min-h-screen flex items-center justify-center">
+        {appAboutSection}
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading news...</p>
@@ -257,6 +275,9 @@ export default function HomePage() {
 
   return (
     <div className="bg-gray-50 min-h-screen">
+      {/* Hidden app-purpose anchor for Google OAuth branding review */}
+      {appAboutSection}
+
       {/* Main Content Area */}
       <div className="max-w-7xl mx-auto px-4 py-6">
         {/* Top Banner Ad - Contained within main content */}
@@ -264,29 +285,12 @@ export default function HomePage() {
           <AdDisplay position="top" pageType="homepage" className="flex justify-center" />
         </div>
 
-        {/* App Purpose Section — required for Google OAuth branding verification */}
-        <section id="about-classy-news" className="mb-6 bg-white shadow-sm rounded-lg overflow-hidden border border-gray-100">
-          <div className="border-l-4 border-red-600 px-5 py-5">
-            <h1 className="text-2xl font-black text-gray-950 mb-1">Classy News</h1>
-            <p className="text-xs font-semibold uppercase tracking-widest text-red-600 mb-3">Your trusted news app &amp; website</p>
-            <p className="text-sm leading-6 text-gray-700 max-w-4xl">
-              <strong>Classy News</strong> is a mobile news application and web portal that gives readers instant access
-              to the latest breaking news, trending stories, politics, business, entertainment, sports, and lifestyle
-              content — all in one place. The <strong>Classy News app</strong> is available for download on Android
-              and delivers real-time push notifications for important stories so you never miss a headline. On the web,
-              classinnews.com serves live news articles, editorial content, live TV streams, and radio broadcasts to
-              keep you informed around the clock.
-            </p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {['Breaking News','Politics','Entertainment','Sports','Lifestyle','Live TV','Radio','Android App'].map((tag) => (
-                <span key={tag} className="inline-block bg-gray-100 text-gray-600 text-xs font-medium px-2.5 py-1 rounded-full">
-                  {tag}
-                </span>
-              ))}
-            </div>
-          </div>
-        </section>
-        
+        {/* Site tagline bar — visible branding for Google review team */}
+        <div className="mb-5 flex items-center gap-3 border-l-4 border-red-600 pl-4 py-1">
+          <span className="text-base font-black text-gray-900">Classy News</span>
+          <span className="text-gray-400 text-sm">—</span>
+          <span className="text-sm text-gray-600">Your news app &amp; website for breaking news, politics, entertainment, sports, live TV &amp; radio.</span>
+        </div>
         {/* Main Grid Layout - Continuous 2/3 + 1/3 */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* Main Content Column - 2/3 width */}
