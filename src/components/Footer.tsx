@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Newspaper, Mail, Facebook, Twitter, Instagram, Youtube } from 'lucide-react'
 import { cachedFetchSafe } from '@/lib/cacheManager'
-import { NEWS_API_ROOT } from '@/lib/api-config'
+import { NEWS_API_ROOT, ADMIN_API_URL } from '@/lib/api-config'
 import {
   DEFAULT_PUBLIC_SITE_SETTINGS,
   fetchPublicSiteSettings,
@@ -14,6 +14,10 @@ import {
 export default function Footer() {
   const [categories, setCategories] = useState<any[]>([])
   const [settings, setSettings] = useState<PublicSiteSettings>(DEFAULT_PUBLIC_SITE_SETTINGS)
+  const [siteName, setSiteName] = useState('Classy News')
+  const [siteDescription, setSiteDescription] = useState(
+    'Your trusted source for quality journalism and engaging stories from around the world.'
+  )
 
   useEffect(() => {
     async function loadFooterData() {
@@ -29,6 +33,20 @@ export default function Footer() {
 
       setCategories(popularCategories)
       setSettings(siteSettings)
+
+      // Fetch branding from admin dashboard (same source as Header)
+      try {
+        const res = await fetch(`${ADMIN_API_URL}/api/settings/branding`)
+        if (res.ok) {
+          const data = await res.json()
+          if (data.success && data.data) {
+            if (data.data.siteName) setSiteName(data.data.siteName)
+            if (data.data.siteDescription) setSiteDescription(data.data.siteDescription)
+          }
+        }
+      } catch {
+        // fall back to defaults
+      }
     }
 
     loadFooterData()
@@ -49,11 +67,9 @@ export default function Footer() {
           <div>
             <div className="mb-4 flex items-center space-x-2">
               <Newspaper className="h-6 w-6 text-primary-400" />
-              <span className="text-xl font-bold text-white">Classy News</span>
+              <span className="text-xl font-bold text-white">{siteName}</span>
             </div>
-            <p className="text-sm">
-              Your trusted source for quality journalism and engaging stories from around the world.
-            </p>
+            <p className="text-sm">{siteDescription}</p>
           </div>
 
           <div>
@@ -122,7 +138,7 @@ export default function Footer() {
             <span className="text-gray-600">•</span>
             <Link href="/data-deletion" className="hover:text-primary-400">Data Deletion</Link>
           </div>
-          <p>&copy; {new Date().getFullYear()} Classy News. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} {siteName}. All rights reserved.</p>
         </div>
       </div>
     </footer>

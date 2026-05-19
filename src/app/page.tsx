@@ -285,12 +285,6 @@ export default function HomePage() {
           <AdDisplay position="top" pageType="homepage" className="flex justify-center" />
         </div>
 
-        {/* Site tagline bar — visible branding for Google review team */}
-        <div className="mb-5 flex items-center gap-3 border-l-4 border-red-600 pl-4 py-1">
-          <span className="text-base font-black text-gray-900">Classy News</span>
-          <span className="text-gray-400 text-sm">—</span>
-          <span className="text-sm text-gray-600">Your news app &amp; website for breaking news, politics, entertainment, sports, live TV &amp; radio.</span>
-        </div>
         {/* Main Grid Layout - Continuous 2/3 + 1/3 */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* Main Content Column - 2/3 width */}
