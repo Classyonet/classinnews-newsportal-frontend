@@ -157,6 +157,13 @@ export default function Header() {
     setPublicSiteSettings(settings)
   }
 
+  const resolveAssetUrl = (url: string) => {
+    const value = (url || '').trim()
+    if (!value) return ''
+    if (/^https?:\/\//i.test(value)) return value
+    return `${ADMIN_API_URL}${value.startsWith('/') ? value : `/${value}`}`
+  }
+
   const handleLogout = async () => {
     await logoutReaderSession()
     setIsAuthenticated(false)
@@ -384,7 +391,7 @@ export default function Header() {
                 {/* Mobile Logo - Shows on mobile only */}
                 {isMobile && branding.site_mobile_logo_url ? (
                   <img 
-                    src={branding.site_mobile_logo_url}
+                    src={resolveAssetUrl(branding.site_mobile_logo_url)}
                     alt={branding.siteName}
                     className="h-10 w-auto max-w-[150px] object-contain"
                     onError={(e) => {
@@ -397,7 +404,7 @@ export default function Header() {
                   /* Desktop Logo */
                   <div className="flex flex-col">
                     <img 
-                      src={branding.site_logo_url}
+                      src={resolveAssetUrl(branding.site_logo_url)}
                       alt={branding.siteName}
                       className="h-10 md:h-12 w-auto max-w-[180px] md:max-w-[250px] object-contain"
                       onError={(e) => {
