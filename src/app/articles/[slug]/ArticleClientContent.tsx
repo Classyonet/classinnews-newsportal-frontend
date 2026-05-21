@@ -85,6 +85,22 @@ export default function ArticlePage() {
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyText, setReplyText] = useState('');
 
+  const recordArticleView = (articleSlug: string) => {
+    if (typeof window === 'undefined') return;
+    const key = `article_view_recorded_at_${articleSlug}`;
+    const lastRaw = window.localStorage.getItem(key);
+    const last = lastRaw ? Date.parse(lastRaw) : 0;
+    if (last && Date.now() - last < 6 * 60 * 60 * 1000) return;
+
+    readerAuthFetch(`/articles/${articleSlug}/view`, { method: 'POST' })
+      .then((res) => {
+        if (res.ok) {
+          window.localStorage.setItem(key, new Date().toISOString());
+        }
+      })
+      .catch(() => {});
+  };
+
   // Check authentication status
   useEffect(() => {
     const initializeAuth = async () => {
@@ -110,6 +126,7 @@ export default function ArticlePage() {
 
   useEffect(() => {
     if (!slug) return;
+    recordArticleView(slug);
 
     // Fetch article details
     fetch(`${API_URL}/api/articles/${slug}`)

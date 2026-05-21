@@ -26,10 +26,27 @@ export default function ArticlePage() {
 
   useEffect(() => {
     if (slug) {
+      recordArticleView(slug)
       fetchArticle()
       fetchRelatedArticles()
     }
   }, [slug])
+
+  function recordArticleView(articleSlug: string) {
+    if (typeof window === 'undefined') return
+    const key = `article_view_recorded_at_${articleSlug}`
+    const lastRaw = window.localStorage.getItem(key)
+    const last = lastRaw ? Date.parse(lastRaw) : 0
+    if (last && Date.now() - last < 6 * 60 * 60 * 1000) return
+
+    readerAuthFetch(`/articles/${articleSlug}/view`, { method: 'POST' })
+      .then((res) => {
+        if (res.ok) {
+          window.localStorage.setItem(key, new Date().toISOString())
+        }
+      })
+      .catch(() => {})
+  }
 
   async function fetchArticle() {
     try {
