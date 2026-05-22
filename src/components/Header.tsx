@@ -8,6 +8,7 @@ import AdDisplay from './AdDisplay'
 import {
   DEFAULT_PUBLIC_SITE_SETTINGS,
   fetchPublicSiteSettings,
+  parseCustomPages,
   type PublicSiteSettings,
 } from '@/lib/public-site-settings'
 import { ADMIN_API_URL } from '@/lib/api-config'
@@ -219,6 +220,9 @@ export default function Header() {
       icon: <Mail className="h-4 w-4 text-white" />,
     },
   ].filter((social) => social.href.trim())
+  const headerCustomPages = parseCustomPages(publicSiteSettings.custom_pages).filter(
+    (page) => page.placement === 'header' || page.placement === 'both'
+  )
 
   return (
     <header className="bg-white shadow-sm">
@@ -254,6 +258,15 @@ export default function Header() {
               <Link href="/advertise" className="text-gray-700 hover:text-red-600 font-medium transition-colors">
                 Advertise
               </Link>
+              {headerCustomPages.map((page) => (
+                <Link
+                  key={page.slug}
+                  href={`/pages/${page.slug}`}
+                  className="text-gray-700 hover:text-red-600 font-medium transition-colors"
+                >
+                  {page.title}
+                </Link>
+              ))}
             </div>
 
             {/* Right - Social Icons + Search */}
@@ -485,6 +498,16 @@ export default function Header() {
                 <Link href="/advertise" onClick={() => setShowMobileMenu(false)} className="px-3 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-lg font-medium transition-colors">
                   Advertise
                 </Link>
+                {headerCustomPages.map((page) => (
+                  <Link
+                    key={page.slug}
+                    href={`/pages/${page.slug}`}
+                    onClick={() => setShowMobileMenu(false)}
+                    className="px-3 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-lg font-medium transition-colors"
+                  >
+                    {page.title}
+                  </Link>
+                ))}
                 <div className="border-t border-gray-200 pt-2 mt-2">
                   {!isAuthenticated ? (
                     <>

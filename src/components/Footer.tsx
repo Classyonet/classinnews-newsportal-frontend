@@ -8,6 +8,7 @@ import { NEWS_API_ROOT, ADMIN_API_URL } from '@/lib/api-config'
 import {
   DEFAULT_PUBLIC_SITE_SETTINGS,
   fetchPublicSiteSettings,
+  parseCustomPages,
   type PublicSiteSettings,
 } from '@/lib/public-site-settings'
 
@@ -59,6 +60,13 @@ export default function Footer() {
     { href: settings.social_youtube_url, icon: Youtube, label: 'YouTube' },
     { href: settings.social_email_url, icon: Mail, label: 'Email' },
   ].filter((item) => item.href.trim())
+  const customPages = parseCustomPages(settings.custom_pages)
+  const quickCustomPages = customPages.filter((page) =>
+    (page.placement === 'footer' || page.placement === 'both') && page.footerColumn === 'quick'
+  )
+  const legalCustomPages = customPages.filter((page) =>
+    (page.placement === 'footer' || page.placement === 'both') && page.footerColumn !== 'quick'
+  )
 
   return (
     <footer className="bg-gray-900 text-gray-300">
@@ -87,6 +95,11 @@ export default function Footer() {
               <li>
                 <Link href="/latest" className="hover:text-primary-400">Latest News</Link>
               </li>
+              {quickCustomPages.map((page) => (
+                <li key={page.slug}>
+                  <Link href={`/pages/${page.slug}`} className="hover:text-primary-400">{page.title}</Link>
+                </li>
+              ))}
             </ul>
           </div>
 
@@ -141,6 +154,12 @@ export default function Footer() {
             <Link href="/terms" className="hover:text-primary-400">Terms of Service</Link>
             <span className="text-gray-600">•</span>
             <Link href="/data-deletion" className="hover:text-primary-400">Data Deletion</Link>
+            {legalCustomPages.map((page) => (
+              <span key={page.slug} className="contents">
+                <span className="text-gray-600">â€¢</span>
+                <Link href={`/pages/${page.slug}`} className="hover:text-primary-400">{page.title}</Link>
+              </span>
+            ))}
           </div>
           <p>{settings.footer_footnote || `© ${new Date().getFullYear()} ${siteName}. All rights reserved.`}</p>
         </div>

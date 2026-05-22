@@ -16,6 +16,16 @@ export interface PublicSiteSettings {
   page_contact: string
   page_privacy_policy: string
   footer_footnote: string
+  custom_pages: string
+}
+
+export interface CustomPageLink {
+  title: string
+  slug: string
+  content: string
+  placement: 'header' | 'footer' | 'both' | 'none'
+  footerColumn: 'quick' | 'legal' | 'none'
+  isActive: boolean
 }
 
 export const DEFAULT_PUBLIC_SITE_SETTINGS: PublicSiteSettings = {
@@ -34,6 +44,26 @@ export const DEFAULT_PUBLIC_SITE_SETTINGS: PublicSiteSettings = {
   page_contact: '',
   page_privacy_policy: '',
   footer_footnote: 'Classy News - Your trusted source for the latest updates and breaking news.',
+  custom_pages: '[]',
+}
+
+export function parseCustomPages(raw: string): CustomPageLink[] {
+  try {
+    const pages = JSON.parse(raw || '[]')
+    if (!Array.isArray(pages)) return []
+    return pages
+      .map((page) => ({
+        title: String(page.title || '').trim(),
+        slug: String(page.slug || '').trim().replace(/^\/+|\/+$/g, ''),
+        content: String(page.content || ''),
+        placement: ['header', 'footer', 'both', 'none'].includes(page.placement) ? page.placement : 'footer',
+        footerColumn: ['quick', 'legal', 'none'].includes(page.footerColumn) ? page.footerColumn : 'legal',
+        isActive: page.isActive !== false,
+      }))
+      .filter((page) => page.title && page.slug && page.isActive)
+  } catch {
+    return []
+  }
 }
 
 export async function fetchPublicSiteSettings(): Promise<PublicSiteSettings> {
