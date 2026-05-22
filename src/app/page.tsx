@@ -247,18 +247,20 @@ export default function HomePage() {
   // Visually hidden, always rendered — for Google OAuth branding crawler
   // (client page may show loading state; this ensures app name/purpose is always in DOM)
   const appAboutSection = (
-    <div
+    <section
       id="about-classy-news"
       aria-label="About Classy News"
-      style={{ position: 'absolute', width: '1px', height: '1px', overflow: 'hidden', clip: 'rect(0,0,0,0)', whiteSpace: 'nowrap' }}
+      className="bg-gray-100 border-t border-gray-200 mt-8 py-8 px-4"
     >
-      <h1>Classy News</h1>
-      <p>
-        Classy News is a news application and website. Read the latest breaking news, politics,
-        entertainment, sports, and lifestyle stories, and watch live TV and radio — all in one place.
-        The Classy News app is available on Android with real-time push notifications.
-      </p>
-    </div>
+      <div className="max-w-4xl mx-auto text-center">
+        <h2 className="text-2xl font-bold text-gray-900 mb-3">About Classy News</h2>
+        <p className="text-gray-600 text-sm leading-relaxed">
+          Classy News is a news application and website for reading the latest breaking news, politics,
+          entertainment, sports, and lifestyle stories, and watching live TV and radio — all in one place.
+          The Classy News app is available on Android with real-time push notifications.
+        </p>
+      </div>
+    </section>
   );
 
   if (loading) {
@@ -275,8 +277,6 @@ export default function HomePage() {
 
   return (
     <div className="bg-gray-50 min-h-screen">
-      {/* Hidden app-purpose anchor for Google OAuth branding review */}
-      {appAboutSection}
 
       {/* Main Content Area */}
       <div className="max-w-7xl mx-auto px-4 py-6">
@@ -675,8 +675,10 @@ export default function HomePage() {
           </div>
         </div>
 
-
       </div>
+
+      {/* About section for Google OAuth branding verification */}
+      {appAboutSection}
     </div>
   );
 }
