@@ -12,6 +12,10 @@ export interface PublicSiteSettings {
   social_instagram_url: string
   social_youtube_url: string
   social_email_url: string
+  page_about: string
+  page_contact: string
+  page_privacy_policy: string
+  footer_footnote: string
 }
 
 export const DEFAULT_PUBLIC_SITE_SETTINGS: PublicSiteSettings = {
@@ -26,6 +30,10 @@ export const DEFAULT_PUBLIC_SITE_SETTINGS: PublicSiteSettings = {
   social_instagram_url: '',
   social_youtube_url: '',
   social_email_url: '',
+  page_about: '',
+  page_contact: '',
+  page_privacy_policy: '',
+  footer_footnote: 'Classy News - Your trusted source for the latest updates and breaking news.',
 }
 
 export async function fetchPublicSiteSettings(): Promise<PublicSiteSettings> {

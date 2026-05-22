@@ -132,13 +132,17 @@ export default function Footer() {
 
         <div className="mt-8 border-t border-gray-800 pt-8 text-center text-sm">
           <div className="mb-4 flex flex-wrap justify-center gap-4">
+            <Link href="/about" className="hover:text-primary-400">About Us</Link>
+            <span className="text-gray-600">•</span>
+            <Link href="/contact" className="hover:text-primary-400">Contact Us</Link>
+            <span className="text-gray-600">•</span>
             <Link href="/privacy-policy" className="hover:text-primary-400">Privacy Policy</Link>
             <span className="text-gray-600">•</span>
             <Link href="/terms" className="hover:text-primary-400">Terms of Service</Link>
             <span className="text-gray-600">•</span>
             <Link href="/data-deletion" className="hover:text-primary-400">Data Deletion</Link>
           </div>
-          <p>&copy; {new Date().getFullYear()} {siteName}. All rights reserved.</p>
+          <p>{settings.footer_footnote || `© ${new Date().getFullYear()} ${siteName}. All rights reserved.`}</p>
         </div>
       </div>
     </footer>
