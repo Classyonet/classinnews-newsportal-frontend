@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { ExternalLink, Facebook, PlayCircle, Radio, RefreshCw } from 'lucide-react';
 import { getRelativeTime } from '@/lib/timeUtils';
 import AdDisplay from '@/components/AdDisplay';
 import { cachedFetchSafe } from '@/lib/cacheManager';
@@ -41,6 +42,10 @@ export default function HomePage() {
   const [mostRead, setMostRead] = useState<Article[]>([]);
   const [categoryArticles, setCategoryArticles] = useState<Record<string, Article[]>>({});
   const [categories, setCategories] = useState<any[]>([]);
+  const [mediaChannels, setMediaChannels] = useState<MediaChannel[]>([]);
+  const [mediaHeadings, setMediaHeadings] = useState<MediaHeadings>({});
+  const [latestVisibleCount, setLatestVisibleCount] = useState(6);
+  const [radioVisibleCount, setRadioVisibleCount] = useState(5);
   const [loading, setLoading] = useState(true);
   
   // Carousel state
@@ -137,12 +142,16 @@ export default function HomePage() {
           trendingRes,
           latestRes,
           mostReadRes,
-          categoriesRes
+          categoriesRes,
+          mediaChannelsRes,
+          mediaHeadingsRes
         ] = await Promise.all([
           cachedFetchSafe(`${API_URL}/api/articles/trending?limit=6`, 'homepage', []),
-          cachedFetchSafe(`${API_URL}/api/articles/latest?limit=6`, 'homepage', []),
+          cachedFetchSafe(`${API_URL}/api/articles/latest?limit=18`, 'homepage', []),
           cachedFetchSafe(`${API_URL}/api/articles/most-read?limit=6&minViews=${minViews}`, 'homepage', []),
-          cachedFetchSafe(`${API_URL}/api/categories`, 'categories', [])
+          cachedFetchSafe(`${API_URL}/api/categories`, 'categories', []),
+          cachedFetchSafe(`${ADMIN_API_URL}/api/media/channels`, 'media', { success: false, data: [] }),
+          cachedFetchSafe(`${ADMIN_API_URL}/api/media/channel-headings`, 'media', { success: false, data: {} })
         ]);
 
         // Process trending - first one is featured, rest are popular
@@ -155,10 +164,25 @@ export default function HomePage() {
         // Process latest news
         const latestArticles = Array.isArray(latestRes) ? latestRes : [];
         setLatestNews(latestArticles);
+        setLatestVisibleCount(6);
 
         // Process most read
         const mostReadArticles = Array.isArray(mostReadRes) ? mostReadRes : [];
         setMostRead(mostReadArticles);
+
+        const mediaData = Array.isArray(mediaChannelsRes)
+          ? mediaChannelsRes
+          : Array.isArray((mediaChannelsRes as any)?.data)
+          ? (mediaChannelsRes as any).data
+          : [];
+        setMediaChannels(mediaData.filter((channel: any) => (
+          channel?.id && channel?.name && channel?.stream_url && channel?.channel_type
+        )));
+
+        const headingsData = (mediaHeadingsRes as any)?.data;
+        setMediaHeadings(headingsData && typeof headingsData === 'object' && !Array.isArray(headingsData)
+          ? headingsData
+          : {});
 
         // Process categories and sort by article count (most articles first)
         const cats = (Array.isArray(categoriesRes) ? categoriesRes : []).filter(
@@ -243,6 +267,30 @@ export default function HomePage() {
     { name: 'YouTube', color: 'bg-red-600', href: publicSiteSettings.social_youtube_url },
     { name: 'Email', color: 'bg-slate-700', href: publicSiteSettings.social_email_url }
   ].filter((social) => social.href.trim());
+
+  const channelsByType = (type: string) => mediaChannels.filter((channel) => (
+    channel.channel_type?.trim().toLowerCase() === type
+  ));
+  const youtubeChannels = channelsByType('youtube');
+  const youtube2Channels = channelsByType('youtube2');
+  const youtube4Channels = channelsByType('youtube4');
+  const radioChannels = channelsByType('radio');
+  const facebookUrl = publicSiteSettings.social_facebook_url.trim();
+  const visibleLatestNews = latestNews.slice(0, latestVisibleCount);
+
+  const showbizArticles = latestNews.filter((article) => {
+    const slug = article.category?.slug?.trim().toLowerCase() || '';
+    const name = article.category?.name?.trim().toLowerCase() || '';
+    return slug === 'showbiz' ||
+      name === 'showbiz' ||
+      slug.includes('entertainment') ||
+      name.includes('entertainment');
+  }).slice(0, 4);
+
+  const getMediaHeading = (type: string, fallback: string) => {
+    const heading = mediaHeadings[type]?.trim();
+    return heading || fallback;
+  };
 
   // Visually hidden, always rendered — for Google OAuth branding crawler
   // (client page may show loading state; this ensures app name/purpose is always in DOM)
@@ -483,7 +531,7 @@ export default function HomePage() {
                 </Link>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {latestNews.slice(0, 6).map((article) => (
+                {visibleLatestNews.map((article) => (
                   <Link
                     key={article.id}
                     href={`/articles/${article.slug}`}
@@ -515,7 +563,24 @@ export default function HomePage() {
                   </Link>
                 ))}
               </div>
+              {latestNews.length > latestVisibleCount && (
+                <div className="flex justify-center pt-5">
+                  <button
+                    type="button"
+                    onClick={() => setLatestVisibleCount((current) => current + 6)}
+                    className="inline-flex items-center gap-2 rounded-full bg-blue-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-blue-700"
+                  >
+                    <RefreshCw className="h-4 w-4" />
+                    Load More Stories
+                  </button>
+                </div>
+              )}
             </div>
+
+            <YoutubeChannelsSection
+              title={getMediaHeading('youtube', 'YOUTUBE LATEST')}
+              channels={youtubeChannels}
+            />
 
             {/* Category Sections - Top 3 Categories with Most Stories */}
             {categories.length > 0 && Object.keys(categoryArticles).length > 0 && (
@@ -569,6 +634,18 @@ export default function HomePage() {
                 })}
               </div>
             )}
+
+            <YoutubeChannelsSection
+              title={getMediaHeading('youtube2', 'YOUTUBE 2')}
+              channels={youtube2Channels}
+            />
+
+            <ShowbizGrid articles={showbizArticles} />
+
+            <YoutubeChannelsSection
+              title={getMediaHeading('youtube4', 'YOUTUBE 4')}
+              channels={youtube4Channels}
+            />
           </div>
 
           {/* Sidebar Column - 1/3 width - Sticky */}
@@ -607,6 +684,14 @@ export default function HomePage() {
                 ))}
               </div>
             </div>
+
+            <RadioChannelsWidget
+              channels={radioChannels}
+              visibleCount={radioVisibleCount}
+              onLoadMore={() => setRadioVisibleCount((current) => current + 5)}
+            />
+
+            <FacebookPageWidget facebookUrl={facebookUrl} />
 
             {/* Newsletter Signup */}
             <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-lg p-6">
@@ -680,5 +765,259 @@ export default function HomePage() {
       {/* About section for Google OAuth branding verification */}
       {appAboutSection}
     </div>
+  );
+}
+
+interface MediaChannel {
+  id: string;
+  channel_type: string;
+  name: string;
+  stream_url: string;
+  logo_url?: string | null;
+  description?: string | null;
+  latest_video_url?: string | null;
+  latest_video_thumbnail_url?: string | null;
+  latest_video_title?: string | null;
+  latest_video_published_at?: string | null;
+}
+
+type MediaHeadings = Record<string, string>;
+
+function normalizeExternalUrl(rawUrl?: string | null): string {
+  const trimmed = (rawUrl || '').trim();
+  if (!trimmed) return '';
+  return /^[a-zA-Z][a-zA-Z\d+\-.]*:/.test(trimmed) ? trimmed : `https://${trimmed}`;
+}
+
+function normalizeMediaImageUrl(rawUrl?: string | null): string {
+  let value = (rawUrl || '').trim();
+  if (!value) return '';
+
+  const lower = value.toLowerCase();
+  const duplicateHttpIndex = lower.indexOf('http://', 1);
+  const duplicateHttpsIndex = lower.indexOf('https://', 1);
+  const duplicateAbsoluteIndexes = [duplicateHttpIndex, duplicateHttpsIndex]
+    .filter((index) => index > 0)
+    .sort((a, b) => a - b);
+
+  if (duplicateAbsoluteIndexes.length > 0) {
+    value = value.substring(duplicateAbsoluteIndexes[0]);
+  }
+
+  if (/^https?:\/\//i.test(value)) {
+    return value;
+  }
+
+  return value.startsWith('/') ? `${ADMIN_API_URL}${value}` : `${ADMIN_API_URL}/${value}`;
+}
+
+function mediaPlayableUrl(channel: MediaChannel): string {
+  return normalizeExternalUrl(channel.latest_video_url || channel.stream_url);
+}
+
+function mediaImageUrl(channel: MediaChannel): string {
+  return normalizeMediaImageUrl(channel.latest_video_thumbnail_url || channel.logo_url);
+}
+
+function facebookPluginUrl(facebookUrl: string): string {
+  const normalized = normalizeExternalUrl(facebookUrl);
+  return `https://www.facebook.com/plugins/page.php?href=${encodeURIComponent(normalized)}&tabs=timeline&width=360&height=420&small_header=true&adapt_container_width=true&hide_cover=false&show_facepile=true`;
+}
+
+function isFacebookPageUrl(rawUrl: string): boolean {
+  try {
+    return /(^|\.)facebook\.com$/i.test(new URL(normalizeExternalUrl(rawUrl)).hostname);
+  } catch {
+    return false;
+  }
+}
+
+function YoutubeChannelsSection({ title, channels }: { title: string; channels: MediaChannel[] }) {
+  if (channels.length === 0) return null;
+
+  return (
+    <section className="bg-white shadow-sm p-4 md:p-6">
+      <div className="flex items-center justify-between mb-4 pb-2 border-b-2 border-red-600">
+        <h2 className="text-xl md:text-2xl font-bold text-gray-900">{title}</h2>
+      </div>
+      <div className="flex gap-4 overflow-x-auto pb-2">
+        {channels.map((channel) => {
+          const imageUrl = mediaImageUrl(channel);
+          return (
+            <a
+              key={channel.id}
+              href={mediaPlayableUrl(channel)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group w-64 flex-none overflow-hidden rounded-lg border border-gray-100 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+            >
+              <div className="relative h-32 bg-gray-200">
+                {imageUrl ? (
+                  <Image
+                    src={imageUrl}
+                    alt={channel.latest_video_title || channel.name}
+                    fill
+                    className="object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full items-center justify-center bg-gray-900 text-white">
+                    <PlayCircle className="h-10 w-10" />
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent" />
+                <PlayCircle className="absolute bottom-3 left-3 h-8 w-8 text-white drop-shadow" />
+                <div className="absolute bottom-3 right-3 max-w-[135px] rounded-full bg-black/70 px-2.5 py-1 text-[10px] font-bold text-white">
+                  <span className="line-clamp-1">{channel.name}</span>
+                </div>
+              </div>
+              <div className="p-3">
+                <h3 className="line-clamp-2 text-sm font-extrabold leading-snug text-gray-900 group-hover:text-red-600">
+                  {channel.latest_video_title?.trim() || channel.name}
+                </h3>
+                <p className="mt-1 line-clamp-1 text-xs font-semibold text-gray-500">
+                  {channel.latest_video_url?.trim() ? channel.name : channel.description || 'Open channel'}
+                </p>
+              </div>
+            </a>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function ShowbizGrid({ articles }: { articles: Article[] }) {
+  if (articles.length === 0) return null;
+
+  return (
+    <section className="bg-white shadow-sm p-4 md:p-6">
+      <div className="mb-4 pb-2 border-b-2 border-red-600">
+        <h2 className="text-xl md:text-2xl font-bold text-gray-900">SHOWBIZ</h2>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {articles.map((article) => (
+          <Link
+            key={article.id}
+            href={`/articles/${article.slug}`}
+            className="group relative h-44 overflow-hidden rounded-lg bg-gray-200"
+          >
+            {article.featuredImageUrl && (
+              <Image
+                src={article.featuredImageUrl}
+                alt={article.title}
+                fill
+                className="object-cover transition duration-300 group-hover:scale-105"
+              />
+            )}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+            <h3 className="absolute bottom-3 left-3 right-3 line-clamp-2 text-sm font-extrabold leading-snug text-white">
+              {article.title}
+            </h3>
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function RadioChannelsWidget({
+  channels,
+  visibleCount,
+  onLoadMore,
+}: {
+  channels: MediaChannel[];
+  visibleCount: number;
+  onLoadMore: () => void;
+}) {
+  if (channels.length === 0) return null;
+
+  const visible = channels.slice(0, visibleCount);
+
+  return (
+    <section className="bg-white shadow-sm p-4">
+      <div className="flex items-center gap-2 mb-4 pb-2 border-b-2 border-red-600">
+        <Radio className="h-5 w-5 text-red-600" />
+        <h2 className="text-xl font-bold text-gray-900">Live Radio</h2>
+      </div>
+      <div className="space-y-3">
+        {visible.map((channel) => {
+          const logoUrl = normalizeMediaImageUrl(channel.logo_url);
+          return (
+            <a
+              key={channel.id}
+              href={normalizeExternalUrl(channel.stream_url)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 rounded-lg border border-gray-100 p-3 transition hover:border-red-200 hover:bg-red-50"
+            >
+              <div className="relative h-11 w-11 flex-none overflow-hidden rounded-full bg-red-50">
+                {logoUrl ? (
+                  <Image src={logoUrl} alt={channel.name} fill className="object-cover" />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center text-red-600">
+                    <Radio className="h-5 w-5" />
+                  </div>
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="line-clamp-1 text-sm font-bold text-gray-900">{channel.name}</p>
+                <p className="line-clamp-1 text-xs text-gray-500">{channel.description || 'Live radio stream'}</p>
+              </div>
+              <ExternalLink className="h-4 w-4 flex-none text-gray-400" />
+            </a>
+          );
+        })}
+      </div>
+      {channels.length > visibleCount && (
+        <button
+          type="button"
+          onClick={onLoadMore}
+          className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-gray-900 px-4 py-2 text-sm font-bold text-white transition hover:bg-gray-800"
+        >
+          <RefreshCw className="h-4 w-4" />
+          Load More Radio
+        </button>
+      )}
+    </section>
+  );
+}
+
+function FacebookPageWidget({ facebookUrl }: { facebookUrl: string }) {
+  if (!facebookUrl) return null;
+
+  const normalizedUrl = normalizeExternalUrl(facebookUrl);
+  const isFacebookUrl = isFacebookPageUrl(normalizedUrl);
+
+  return (
+    <section className="bg-white shadow-sm p-4">
+      <div className="flex items-center gap-2 mb-4 pb-2 border-b-2 border-blue-600">
+        <Facebook className="h-5 w-5 text-blue-600" />
+        <h2 className="text-xl font-bold text-gray-900">Facebook</h2>
+      </div>
+      {isFacebookUrl ? (
+        <div className="overflow-hidden rounded-lg border border-gray-100 bg-gray-50">
+          <iframe
+            title="Classy News Facebook page"
+            src={facebookPluginUrl(normalizedUrl)}
+            width="100%"
+            height="420"
+            style={{ border: 'none', overflow: 'hidden' }}
+            scrolling="no"
+            frameBorder="0"
+            allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+          />
+        </div>
+      ) : (
+        <a
+          href={normalizedUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-between rounded-lg bg-blue-600 px-4 py-3 text-sm font-bold text-white transition hover:bg-blue-700"
+        >
+          Open Facebook Page
+          <ExternalLink className="h-4 w-4" />
+        </a>
+      )}
+    </section>
   );
 }
