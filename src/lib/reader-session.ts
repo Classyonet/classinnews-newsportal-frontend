@@ -58,9 +58,15 @@ export function clearStoredReaderSession() {
     return
   }
 
+  const hadStoredSession =
+    window.localStorage.getItem(READER_USER_KEY) !== null ||
+    window.localStorage.getItem(LEGACY_READER_TOKEN_KEY) !== null
+
   window.localStorage.removeItem(READER_USER_KEY)
   window.localStorage.removeItem(LEGACY_READER_TOKEN_KEY)
-  notifyReaderAuthChanged()
+  if (hadStoredSession) {
+    notifyReaderAuthChanged()
+  }
 }
 
 export async function fetchCurrentReader(): Promise<ReaderUser | null> {

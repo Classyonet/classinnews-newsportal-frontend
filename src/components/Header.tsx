@@ -94,15 +94,14 @@ export default function Header() {
     if (cachedUser) {
       setCurrentUser(cachedUser)
       setIsAuthenticated(true)
-    } else {
+      const user = await fetchCurrentReader()
+      if (user) {
+        setCurrentUser(user)
+        setIsAuthenticated(true)
+        return
+      }
       setIsAuthenticated(false)
       setCurrentUser(null)
-    }
-
-    const user = await fetchCurrentReader()
-    if (user) {
-      setCurrentUser(user)
-      setIsAuthenticated(true)
       return
     }
 
