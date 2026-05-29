@@ -1,9 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ExternalLink, Facebook, PlayCircle, Radio, RefreshCw } from 'lucide-react';
+import { ExternalLink, Facebook, PauseCircle, PlayCircle, Radio, RefreshCw } from 'lucide-react';
 import { getRelativeTime } from '@/lib/timeUtils';
 import AdDisplay from '@/components/AdDisplay';
 import { cachedFetchSafe } from '@/lib/cacheManager';
@@ -148,7 +148,7 @@ export default function HomePage() {
         ] = await Promise.all([
           cachedFetchSafe(`${API_URL}/api/articles/trending?limit=6`, 'homepage', []),
           cachedFetchSafe(`${API_URL}/api/articles/latest?limit=18`, 'homepage', []),
-          cachedFetchSafe(`${API_URL}/api/articles/most-read?limit=6&minViews=${minViews}`, 'homepage', []),
+          cachedFetchSafe(`${API_URL}/api/articles/most-read?limit=4&minViews=${minViews}`, 'homepage', []),
           cachedFetchSafe(`${API_URL}/api/categories`, 'categories', []),
           cachedFetchSafe(`${ADMIN_API_URL}/api/media/channels`, 'media', { success: false, data: [] }),
           cachedFetchSafe(`${ADMIN_API_URL}/api/media/channel-headings`, 'media', { success: false, data: {} })
@@ -292,29 +292,9 @@ export default function HomePage() {
     return heading || fallback;
   };
 
-  // Visually hidden, always rendered — for Google OAuth branding crawler
-  // (client page may show loading state; this ensures app name/purpose is always in DOM)
-  const appAboutSection = (
-    <section
-      id="about-classy-news"
-      aria-label="About Classy News"
-      className="bg-gray-100 border-t border-gray-200 mt-8 py-8 px-4"
-    >
-      <div className="max-w-4xl mx-auto text-center">
-        <h2 className="text-2xl font-bold text-gray-900 mb-3">About Classy News</h2>
-        <p className="text-gray-600 text-sm leading-relaxed">
-          Classy News is a news application and website for reading the latest breaking news, politics,
-          entertainment, sports, and lifestyle stories, and watching live TV and radio — all in one place.
-          The Classy News app is available on Android with real-time push notifications.
-        </p>
-      </div>
-    </section>
-  );
-
   if (loading) {
     return (
       <div className="bg-gray-50 min-h-screen flex items-center justify-center">
-        {appAboutSection}
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading news...</p>
@@ -471,51 +451,7 @@ export default function HomePage() {
               <AdDisplay position="content_top" pageType="homepage" className="flex justify-center" />
             </div>
 
-            {/* Most Read Section - Horizontal Layout */}
-            <div className="bg-white shadow-sm p-6">
-              <div className="flex items-center justify-between mb-4 pb-2 border-b-2 border-gray-200">
-                <h2 className="text-2xl font-bold text-gray-900">Most Read</h2>
-                <Link href="/trending" className="text-red-600 hover:text-red-700 text-sm font-semibold">
-                  View All →
-                </Link>
-              </div>
-              <div className="space-y-4">
-                {mostRead.slice(0, 6).map((article, index) => (
-                  <Link
-                    key={article.id}
-                    href={`/articles/${article.slug}`}
-                    className={`flex gap-4 group hover:bg-gray-50 p-3 -mx-3 transition-colors ${index % 2 === 0 ? 'flex-row' : 'flex-row-reverse'}`}
-                  >
-                    <div className="relative w-32 h-24 md:w-40 md:h-28 flex-shrink-0 bg-gray-200 rounded overflow-hidden">
-                      {article.featuredImageUrl && (
-                        <Image
-                          src={article.featuredImageUrl}
-                          alt={article.title}
-                          fill
-                          className="object-cover"
-                        />
-                      )}
-                      <div className="absolute top-1 left-1">
-                        <span className="bg-red-600 text-white px-1.5 py-0.5 text-xs font-bold rounded">
-                          #{index + 1}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex-1 flex flex-col justify-center min-w-0">
-                      <h3 className="text-sm md:text-base font-semibold text-gray-900 group-hover:text-red-600 line-clamp-2 transition-colors">
-                        {article.title}
-                      </h3>
-                      <p className="text-xs text-gray-500 mt-1 line-clamp-2 hidden md:block">
-                        {article.excerpt}
-                      </p>
-                      <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
-                        <span>{new Date(article.publishedAt).toLocaleDateString()}</span>
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
+            <MostReadGrid articles={mostRead.slice(0, 4)} />
 
             {/* Ad Banner - Sidebar Middle (in content flow) */}
             <div className="py-4">
@@ -762,8 +698,6 @@ export default function HomePage() {
 
       </div>
 
-      {/* About section for Google OAuth branding verification */}
-      {appAboutSection}
     </div>
   );
 }
@@ -886,6 +820,46 @@ function YoutubeChannelsSection({ title, channels }: { title: string; channels: 
   );
 }
 
+function MostReadGrid({ articles }: { articles: Article[] }) {
+  if (articles.length === 0) return null;
+
+  return (
+    <section className="bg-white shadow-sm p-4 md:p-6">
+      <div className="mb-4 flex items-center justify-between border-b-2 border-red-600 pb-2">
+        <h2 className="text-xl md:text-2xl font-bold text-gray-900">MOST READ</h2>
+        <Link href="/trending" className="text-sm font-semibold text-red-600 hover:text-red-700">
+          View All
+        </Link>
+      </div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {articles.map((article, index) => (
+          <Link
+            key={article.id}
+            href={`/articles/${article.slug}`}
+            className="group relative h-44 overflow-hidden rounded-lg bg-gray-200"
+          >
+            {article.featuredImageUrl && (
+              <Image
+                src={article.featuredImageUrl}
+                alt={article.title}
+                fill
+                className="object-cover transition duration-300 group-hover:scale-105"
+              />
+            )}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+            <span className="absolute left-3 top-3 rounded-full bg-red-600 px-2.5 py-1 text-xs font-extrabold text-white">
+              #{index + 1}
+            </span>
+            <h3 className="absolute bottom-3 left-3 right-3 line-clamp-2 text-sm font-extrabold leading-snug text-white">
+              {article.title}
+            </h3>
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function ShowbizGrid({ articles }: { articles: Article[] }) {
   if (articles.length === 0) return null;
 
@@ -929,9 +903,41 @@ function RadioChannelsWidget({
   visibleCount: number;
   onLoadMore: () => void;
 }) {
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [playingChannelId, setPlayingChannelId] = useState<string | null>(null);
+
+  useEffect(() => {
+    return () => {
+      audioRef.current?.pause();
+    };
+  }, []);
+
   if (channels.length === 0) return null;
 
   const visible = channels.slice(0, visibleCount);
+
+  const togglePlayback = (channel: MediaChannel) => {
+    const streamUrl = normalizeExternalUrl(channel.stream_url);
+    if (!streamUrl) return;
+
+    if (!audioRef.current) {
+      audioRef.current = new Audio();
+    }
+
+    const audio = audioRef.current;
+    if (playingChannelId === channel.id) {
+      audio.pause();
+      setPlayingChannelId(null);
+      return;
+    }
+
+    audio.pause();
+    audio.src = streamUrl;
+    audio.load();
+    audio.play()
+      .then(() => setPlayingChannelId(channel.id))
+      .catch(() => setPlayingChannelId(null));
+  };
 
   return (
     <section className="bg-white shadow-sm p-4">
@@ -942,12 +948,10 @@ function RadioChannelsWidget({
       <div className="space-y-3">
         {visible.map((channel) => {
           const logoUrl = normalizeMediaImageUrl(channel.logo_url);
+          const isPlaying = playingChannelId === channel.id;
           return (
-            <a
+            <div
               key={channel.id}
-              href={normalizeExternalUrl(channel.stream_url)}
-              target="_blank"
-              rel="noopener noreferrer"
               className="flex items-center gap-3 rounded-lg border border-gray-100 p-3 transition hover:border-red-200 hover:bg-red-50"
             >
               <div className="relative h-11 w-11 flex-none overflow-hidden rounded-full bg-red-50">
@@ -963,8 +967,17 @@ function RadioChannelsWidget({
                 <p className="line-clamp-1 text-sm font-bold text-gray-900">{channel.name}</p>
                 <p className="line-clamp-1 text-xs text-gray-500">{channel.description || 'Live radio stream'}</p>
               </div>
-              <ExternalLink className="h-4 w-4 flex-none text-gray-400" />
-            </a>
+              <button
+                type="button"
+                onClick={() => togglePlayback(channel)}
+                className={`inline-flex h-10 w-10 flex-none items-center justify-center rounded-full text-white transition ${
+                  isPlaying ? 'bg-gray-900 hover:bg-gray-800' : 'bg-red-600 hover:bg-red-700'
+                }`}
+                aria-label={`${isPlaying ? 'Pause' : 'Play'} ${channel.name}`}
+              >
+                {isPlaying ? <PauseCircle className="h-5 w-5" /> : <PlayCircle className="h-5 w-5" />}
+              </button>
+            </div>
           );
         })}
       </div>
