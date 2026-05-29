@@ -95,6 +95,9 @@ export default function Footer() {
               <li>
                 <Link href="/latest" className="hover:text-primary-400">Latest News</Link>
               </li>
+              <li>
+                <Link href="/contact" className="hover:text-primary-400">Contact Us</Link>
+              </li>
               {quickCustomPages.map((page) => (
                 <li key={page.slug}>
                   <Link href={`/site-pages/${page.slug}`} className="hover:text-primary-400">{page.title}</Link>
@@ -144,6 +147,11 @@ export default function Footer() {
         </div>
 
         <div className="mt-8 border-t border-gray-800 pt-8 text-center text-sm">
+          <div className="mb-4">
+            <Link href="/contact" className="font-semibold text-white hover:text-primary-400">
+              Contact Classy News: support@classinnews.com
+            </Link>
+          </div>
           {legalCustomPages.length > 0 && (
             <div className="mb-4 flex flex-wrap justify-center gap-4">
               {legalCustomPages.map((page) => (
