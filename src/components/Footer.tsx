@@ -97,7 +97,7 @@ export default function Footer() {
               </li>
               {quickCustomPages.map((page) => (
                 <li key={page.slug}>
-                  <Link href={`/pages/${page.slug}`} className="hover:text-primary-400">{page.title}</Link>
+                  <Link href={`/site-pages/${page.slug}`} className="hover:text-primary-400">{page.title}</Link>
                 </li>
               ))}
             </ul>
@@ -157,7 +157,7 @@ export default function Footer() {
             {legalCustomPages.map((page) => (
               <span key={page.slug} className="contents">
                 <span className="text-gray-600">â€¢</span>
-                <Link href={`/pages/${page.slug}`} className="hover:text-primary-400">{page.title}</Link>
+                <Link href={`/site-pages/${page.slug}`} className="hover:text-primary-400">{page.title}</Link>
               </span>
             ))}
           </div>

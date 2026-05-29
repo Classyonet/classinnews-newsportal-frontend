@@ -2,8 +2,8 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { fetchPublicSiteSettings, parseCustomPages } from '@/lib/public-site-settings'
 
-export const runtime = 'edge';
-export const dynamic = 'force-dynamic';
+export const runtime = 'edge'
+export const dynamic = 'force-dynamic'
 
 export default async function CustomPage({ params }: { params: { slug: string } }) {
   const settings = await fetchPublicSiteSettings()

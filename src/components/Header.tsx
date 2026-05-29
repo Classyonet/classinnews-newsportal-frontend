@@ -260,7 +260,7 @@ export default function Header() {
               {headerCustomPages.map((page) => (
                 <Link
                   key={page.slug}
-                  href={`/pages/${page.slug}`}
+                  href={`/site-pages/${page.slug}`}
                   className="text-gray-700 hover:text-red-600 font-medium transition-colors"
                 >
                   {page.title}
@@ -500,7 +500,7 @@ export default function Header() {
                 {headerCustomPages.map((page) => (
                   <Link
                     key={page.slug}
-                    href={`/pages/${page.slug}`}
+                    href={`/site-pages/${page.slug}`}
                     onClick={() => setShowMobileMenu(false)}
                     className="px-3 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-lg font-medium transition-colors"
                   >
