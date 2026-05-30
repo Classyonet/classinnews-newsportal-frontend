@@ -18,6 +18,12 @@ export default function RegisterForm() {
   const [success, setSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [googleEnabled, setGoogleEnabled] = useState(false);
+  const [viewedTerms, setViewedTerms] = useState(false);
+  const [viewedPrivacy, setViewedPrivacy] = useState(false);
+  const [acceptedLegal, setAcceptedLegal] = useState(false);
+
+  const legalReady = viewedTerms && viewedPrivacy && acceptedLegal;
+  const canCreateAccount = legalReady && !loading;
 
   useEffect(() => {
     fetch(`${API_URL}/auth/oauth-providers`)
@@ -29,6 +35,11 @@ export default function RegisterForm() {
   }, []);
 
   const handleGoogleRegister = () => {
+    if (!legalReady) {
+      setError("Please view the Terms and Privacy Policy, then tick acceptance.");
+      return;
+    }
+
     window.location.href = `${API_URL}/auth/google`;
   };
 
@@ -36,6 +47,12 @@ export default function RegisterForm() {
     e.preventDefault();
     setLoading(true);
     setError("");
+
+    if (!legalReady) {
+      setError("Please view the Terms and Privacy Policy, then tick acceptance.");
+      setLoading(false);
+      return;
+    }
 
     if (password !== confirmPassword) {
       setError("Passwords do not match");
@@ -142,7 +159,7 @@ export default function RegisterForm() {
                 <button
                   type="button"
                   onClick={handleGoogleRegister}
-                  disabled={!googleEnabled}
+                  disabled={!googleEnabled || !canCreateAccount}
                   className="w-full flex items-center justify-center gap-3 px-5 py-3 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-all font-medium text-gray-700 disabled:opacity-40 disabled:cursor-not-allowed mb-6"
                 >
                   <svg className="h-5 w-5" viewBox="0 0 24 24">
@@ -299,9 +316,54 @@ export default function RegisterForm() {
                     </div>
                   </div>
 
+                  <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                    <p className="text-sm font-semibold text-gray-900">Before creating your account</p>
+                    <p className="mt-1 text-xs leading-5 text-gray-500">
+                      Open both notes, then tick the acceptance box to continue.
+                    </p>
+                    <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                      <Link
+                        href="/terms"
+                        target="_blank"
+                        onClick={() => setViewedTerms(true)}
+                        className={`rounded-xl border px-3 py-2 text-center text-sm font-semibold transition ${
+                          viewedTerms
+                            ? "border-green-200 bg-green-50 text-green-700"
+                            : "border-gray-200 bg-white text-indigo-700 hover:border-indigo-300"
+                        }`}
+                      >
+                        {viewedTerms ? "Terms viewed" : "View Terms"}
+                      </Link>
+                      <Link
+                        href="/privacy-policy"
+                        target="_blank"
+                        onClick={() => setViewedPrivacy(true)}
+                        className={`rounded-xl border px-3 py-2 text-center text-sm font-semibold transition ${
+                          viewedPrivacy
+                            ? "border-green-200 bg-green-50 text-green-700"
+                            : "border-gray-200 bg-white text-indigo-700 hover:border-indigo-300"
+                        }`}
+                      >
+                        {viewedPrivacy ? "Privacy viewed" : "View Privacy"}
+                      </Link>
+                    </div>
+                    <label className="mt-3 flex items-start gap-3 text-sm text-gray-600">
+                      <input
+                        type="checkbox"
+                        checked={acceptedLegal}
+                        disabled={!viewedTerms || !viewedPrivacy || loading}
+                        onChange={(e) => setAcceptedLegal(e.target.checked)}
+                        className="mt-1 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 disabled:opacity-40"
+                      />
+                      <span>
+                        I have read and accept the Terms and Conditions and Privacy Policy.
+                      </span>
+                    </label>
+                  </div>
+
                   <button
                     type="submit"
-                    disabled={loading}
+                    disabled={!canCreateAccount}
                     className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-4 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
                   >
                     {loading ? "Creating Account..." : "Create Account"}
