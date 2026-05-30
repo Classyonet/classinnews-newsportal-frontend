@@ -3,12 +3,8 @@ export const runtime = 'edge'
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
-import Header from '@/components/Header'
-import CategoryNav from '@/components/CategoryNav'
-import Footer from '@/components/Footer'
-import NotificationConsent from '@/components/NotificationConsent'
-import NotificationManager from '@/components/NotificationManager'
 import { BrandingHead } from '@/components/BrandingHead'
+import SiteChrome from '@/components/SiteChrome'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -39,18 +35,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <BrandingHead />
-        <div className="min-h-screen flex flex-col bg-gray-50">
-          <div className="sticky top-0 z-50">
-            <Header />
-            <CategoryNav />
-          </div>
-          <main className="flex-1">
-            {children}
-          </main>
-          <Footer />
-          <NotificationConsent />
-          <NotificationManager />
-        </div>
+        <SiteChrome>{children}</SiteChrome>
       </body>
     </html>
   )

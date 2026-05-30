@@ -14,6 +14,7 @@ export interface PublicSiteSettings {
   social_email_url: string
   page_about: string
   page_contact: string
+  page_terms_conditions: string
   page_privacy_policy: string
   footer_footnote: string
   custom_pages: string
@@ -42,6 +43,7 @@ export const DEFAULT_PUBLIC_SITE_SETTINGS: PublicSiteSettings = {
   social_email_url: '',
   page_about: '',
   page_contact: '',
+  page_terms_conditions: '',
   page_privacy_policy: '',
   footer_footnote: 'Classy News - Your trusted source for the latest updates and breaking news.',
   custom_pages: '[]',

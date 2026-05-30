@@ -1,11 +1,23 @@
+import { fetchPublicSiteSettings } from '@/lib/public-site-settings'
+
 export const runtime = 'edge'
+export const dynamic = 'force-dynamic'
 
+export default async function PrivacyPolicyPage() {
+  const settings = await fetchPublicSiteSettings()
+  const adminContent = settings.page_privacy_policy?.trim()
 
-export default function PrivacyPolicyPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="container mx-auto px-4 max-w-4xl">
         <div className="bg-white shadow-sm rounded-lg p-8">
+          {adminContent ? (
+            <div
+              className="prose prose-gray max-w-none"
+              dangerouslySetInnerHTML={{ __html: adminContent }}
+            />
+          ) : (
+            <>
           <h1 className="text-4xl font-bold text-gray-900 mb-6">Privacy Policy</h1>
           <p className="text-sm text-gray-500 mb-8">Last Updated: February 4, 2026</p>
 
@@ -121,6 +133,8 @@ export default function PrivacyPolicyPage() {
               </ul>
             </section>
           </div>
+            </>
+          )}
         </div>
       </div>
     </div>

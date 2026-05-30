@@ -67,6 +67,13 @@ export default function Footer() {
   const legalCustomPages = customPages.filter((page) =>
     (page.placement === 'footer' || page.placement === 'both') && page.footerColumn !== 'quick'
   )
+  const legalLinks = [
+    { href: '/terms', title: 'Terms and Conditions' },
+    { href: '/privacy-policy', title: 'Privacy Policy' },
+    ...legalCustomPages
+      .filter((page) => !['terms', 'terms-and-conditions', 'privacy-policy', 'privacy'].includes(page.slug))
+      .map((page) => ({ href: `/pages/${page.slug}`, title: page.title })),
+  ]
 
   return (
     <footer className="bg-gray-900 text-gray-300">
@@ -100,7 +107,7 @@ export default function Footer() {
               </li>
               {quickCustomPages.map((page) => (
                 <li key={page.slug}>
-                  <Link href={`/site-pages/${page.slug}`} className="hover:text-primary-400">{page.title}</Link>
+                  <Link href={`/pages/${page.slug}`} className="hover:text-primary-400">{page.title}</Link>
                 </li>
               ))}
             </ul>
@@ -152,10 +159,10 @@ export default function Footer() {
               Contact Classy News: support@classinnews.com
             </Link>
           </div>
-          {legalCustomPages.length > 0 && (
+          {legalLinks.length > 0 && (
             <div className="mb-4 flex flex-wrap justify-center gap-4">
-              {legalCustomPages.map((page) => (
-                <Link key={page.slug} href={`/site-pages/${page.slug}`} className="hover:text-primary-400">
+              {legalLinks.map((page) => (
+                <Link key={page.href} href={page.href} className="hover:text-primary-400">
                   {page.title}
                 </Link>
               ))}
