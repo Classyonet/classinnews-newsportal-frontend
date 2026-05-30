@@ -61,6 +61,20 @@ export default function Footer() {
     { href: settings.social_email_url, icon: Mail, label: 'Email' },
   ].filter((item) => item.href.trim())
   const customPages = parseCustomPages(settings.custom_pages)
+  const managedLegalPages = [
+    {
+      href: '/terms',
+      title: 'Terms and Conditions',
+      placement: settings.page_terms_placement,
+      footerColumn: settings.page_terms_footer_column,
+    },
+    {
+      href: '/privacy-policy',
+      title: 'Privacy Policy',
+      placement: settings.page_privacy_placement,
+      footerColumn: settings.page_privacy_footer_column,
+    },
+  ].filter((page) => page.placement === 'footer' || page.placement === 'both')
   const quickCustomPages = customPages.filter((page) =>
     (page.placement === 'footer' || page.placement === 'both') && page.footerColumn === 'quick'
   )
@@ -68,12 +82,16 @@ export default function Footer() {
     (page.placement === 'footer' || page.placement === 'both') && page.footerColumn !== 'quick'
   )
   const legalLinks = [
-    { href: '/terms', title: 'Terms and Conditions' },
-    { href: '/privacy-policy', title: 'Privacy Policy' },
+    ...managedLegalPages
+      .filter((page) => page.footerColumn !== 'quick')
+      .map((page) => ({ href: page.href, title: page.title })),
     ...legalCustomPages
       .filter((page) => !['terms', 'terms-and-conditions', 'privacy-policy', 'privacy'].includes(page.slug))
       .map((page) => ({ href: `/pages/${page.slug}`, title: page.title })),
   ]
+  const quickManagedPages = managedLegalPages
+    .filter((page) => page.footerColumn === 'quick')
+    .map((page) => ({ href: page.href, title: page.title }))
 
   return (
     <footer className="bg-gray-900 text-gray-300">
@@ -105,6 +123,11 @@ export default function Footer() {
               <li>
                 <Link href="/contact" className="hover:text-primary-400">Contact Us</Link>
               </li>
+              {quickManagedPages.map((page) => (
+                <li key={page.href}>
+                  <Link href={page.href} className="hover:text-primary-400">{page.title}</Link>
+                </li>
+              ))}
               {quickCustomPages.map((page) => (
                 <li key={page.slug}>
                   <Link href={`/pages/${page.slug}`} className="hover:text-primary-400">{page.title}</Link>

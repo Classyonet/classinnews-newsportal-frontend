@@ -15,7 +15,11 @@ export interface PublicSiteSettings {
   page_about: string
   page_contact: string
   page_terms_conditions: string
+  page_terms_placement: string
+  page_terms_footer_column: string
   page_privacy_policy: string
+  page_privacy_placement: string
+  page_privacy_footer_column: string
   footer_footnote: string
   custom_pages: string
 }
@@ -44,7 +48,11 @@ export const DEFAULT_PUBLIC_SITE_SETTINGS: PublicSiteSettings = {
   page_about: '',
   page_contact: '',
   page_terms_conditions: '',
+  page_terms_placement: 'footer',
+  page_terms_footer_column: 'legal',
   page_privacy_policy: '',
+  page_privacy_placement: 'footer',
+  page_privacy_footer_column: 'legal',
   footer_footnote: 'Classy News - Your trusted source for the latest updates and breaking news.',
   custom_pages: '[]',
 }
