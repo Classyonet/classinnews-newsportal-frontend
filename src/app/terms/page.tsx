@@ -1,11 +1,14 @@
-import { fetchPublicSiteSettings } from '@/lib/public-site-settings'
+import { fetchPublicSiteSettings, parseCustomPages } from '@/lib/public-site-settings'
 
 export const runtime = 'edge'
 export const dynamic = 'force-dynamic'
 
 export default async function TermsPage() {
   const settings = await fetchPublicSiteSettings()
-  const adminContent = settings.page_terms_conditions?.trim()
+  const customTermsPage = parseCustomPages(settings.custom_pages).find((page) =>
+    ['terms', 'terms-and-conditions', 'terms-conditions', 't-and-c'].includes(page.slug)
+  )
+  const adminContent = settings.page_terms_conditions?.trim() || customTermsPage?.content?.trim()
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">

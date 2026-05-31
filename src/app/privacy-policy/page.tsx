@@ -1,11 +1,14 @@
-import { fetchPublicSiteSettings } from '@/lib/public-site-settings'
+import { fetchPublicSiteSettings, parseCustomPages } from '@/lib/public-site-settings'
 
 export const runtime = 'edge'
 export const dynamic = 'force-dynamic'
 
 export default async function PrivacyPolicyPage() {
   const settings = await fetchPublicSiteSettings()
-  const adminContent = settings.page_privacy_policy?.trim()
+  const customPrivacyPage = parseCustomPages(settings.custom_pages).find((page) =>
+    ['privacy-policy', 'privacy', 'privacy-notice'].includes(page.slug)
+  )
+  const adminContent = settings.page_privacy_policy?.trim() || customPrivacyPage?.content?.trim()
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">

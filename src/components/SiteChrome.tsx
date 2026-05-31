@@ -13,6 +13,12 @@ const AUTH_PATHS = [
   '/forgot-password',
   '/reset-password',
   '/verify-email',
+  '/auth/login',
+  '/auth/register',
+  '/auth/forgot-password',
+  '/auth/reset-password',
+  '/auth/verify-email',
+  '/auth/callback',
 ]
 
 export default function SiteChrome({ children }: { children: React.ReactNode }) {
