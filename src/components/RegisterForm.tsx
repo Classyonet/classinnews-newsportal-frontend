@@ -22,8 +22,8 @@ export default function RegisterForm() {
   const [viewedTerms, setViewedTerms] = useState(false);
   const [viewedPrivacy, setViewedPrivacy] = useState(false);
   const [acceptedLegal, setAcceptedLegal] = useState(false);
-  const [termsLink, setTermsLink] = useState("/pages/terms-and-conditions");
-  const [privacyLink, setPrivacyLink] = useState("/pages/privacy-policy");
+  const [termsLink, setTermsLink] = useState("/site-pages/terms-and-conditions");
+  const [privacyLink, setPrivacyLink] = useState("/site-pages/privacy-policy");
 
   const legalReady = viewedTerms && viewedPrivacy && acceptedLegal;
   const canCreateAccount = legalReady && !loading;

@@ -10,7 +10,7 @@ export default async function TermsPage() {
   const customTermsPage = resolveLegalCustomPage(settings.custom_pages, 'terms')
 
   if (customTermsPage) {
-    redirect(`/pages/${customTermsPage.slug}`)
+    redirect(`/site-pages/${customTermsPage.slug}`)
   }
 
   return (

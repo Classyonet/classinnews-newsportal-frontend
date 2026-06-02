@@ -126,7 +126,7 @@ export function resolveLegalCustomPagePath(
   kind: LegalPageKind
 ): string | null {
   const page = resolveLegalCustomPage(customPagesRaw, kind)
-  return page ? `/pages/${page.slug}` : null
+  return page ? `/site-pages/${page.slug}` : null
 }
 
 export async function fetchPublicSiteSettings(): Promise<PublicSiteSettings> {

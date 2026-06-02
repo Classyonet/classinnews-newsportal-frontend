@@ -67,7 +67,7 @@ export default function Footer() {
   const legalCustomPages = customPages.filter((page) =>
     (page.placement === 'footer' || page.placement === 'both') && page.footerColumn !== 'quick'
   )
-  const legalLinksToRender = legalCustomPages.map((page) => ({ href: `/pages/${page.slug}`, title: page.title }))
+  const legalLinksToRender = legalCustomPages.map((page) => ({ href: `/site-pages/${page.slug}`, title: page.title }))
 
   return (
     <footer className="bg-gray-900 text-gray-300">
@@ -101,7 +101,7 @@ export default function Footer() {
               </li>
               {quickCustomPages.map((page) => (
                 <li key={page.slug}>
-                  <Link href={`/pages/${page.slug}`} className="hover:text-primary-400">{page.title}</Link>
+                  <Link href={`/site-pages/${page.slug}`} className="hover:text-primary-400">{page.title}</Link>
                 </li>
               ))}
             </ul>

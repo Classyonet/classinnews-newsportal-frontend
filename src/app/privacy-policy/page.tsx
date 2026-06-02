@@ -10,7 +10,7 @@ export default async function PrivacyPolicyPage() {
   const customPrivacyPage = resolveLegalCustomPage(settings.custom_pages, 'privacy')
 
   if (customPrivacyPage) {
-    redirect(`/pages/${customPrivacyPage.slug}`)
+    redirect(`/site-pages/${customPrivacyPage.slug}`)
   }
 
   return (
