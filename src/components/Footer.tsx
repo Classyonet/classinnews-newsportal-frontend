@@ -81,12 +81,27 @@ export default function Footer() {
   const legalCustomPages = customPages.filter((page) =>
     (page.placement === 'footer' || page.placement === 'both') && page.footerColumn !== 'quick'
   )
+  const managedLegalSlugsInFooter = new Set(
+    managedLegalPages
+      .filter((page) => page.footerColumn !== 'quick')
+      .map((page) => (page.href === '/terms' ? 'terms' : page.href === '/privacy-policy' ? 'privacy-policy' : ''))
+      .filter(Boolean)
+  )
   const legalLinks = [
     ...managedLegalPages
       .filter((page) => page.footerColumn !== 'quick')
       .map((page) => ({ href: page.href, title: page.title })),
     ...legalCustomPages
-      .filter((page) => !['terms', 'terms-and-conditions', 'privacy-policy', 'privacy'].includes(page.slug))
+      .filter((page) => {
+        // Keep custom legal pages unless the equivalent managed page is also in footer.
+        if (page.slug === 'terms' || page.slug === 'terms-and-conditions') {
+          return !managedLegalSlugsInFooter.has('terms')
+        }
+        if (page.slug === 'privacy' || page.slug === 'privacy-policy') {
+          return !managedLegalSlugsInFooter.has('privacy-policy')
+        }
+        return true
+      })
       .map((page) => ({ href: `/pages/${page.slug}`, title: page.title })),
   ]
   const quickManagedPages = managedLegalPages
