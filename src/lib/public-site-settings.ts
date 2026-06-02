@@ -33,6 +33,22 @@ export interface CustomPageLink {
   isActive: boolean
 }
 
+const normalizePlacement = (value: unknown): CustomPageLink['placement'] => {
+  const normalized = String(value || '').trim().toLowerCase()
+  if (normalized === 'header' || normalized === 'footer' || normalized === 'both' || normalized === 'none') {
+    return normalized
+  }
+  return 'footer'
+}
+
+const normalizeFooterColumn = (value: unknown): CustomPageLink['footerColumn'] => {
+  const normalized = String(value || '').trim().toLowerCase()
+  if (normalized === 'quick' || normalized === 'legal' || normalized === 'none') {
+    return normalized
+  }
+  return 'legal'
+}
+
 export const DEFAULT_PUBLIC_SITE_SETTINGS: PublicSiteSettings = {
   homepage_sidebar_newsletter_title: 'Stay Updated',
   homepage_sidebar_newsletter_description: 'Subscribe to our newsletter for daily updates',
@@ -66,8 +82,8 @@ export function parseCustomPages(raw: string): CustomPageLink[] {
         title: String(page.title || '').trim(),
         slug: String(page.slug || '').trim().replace(/^\/+|\/+$/g, ''),
         content: String(page.content || ''),
-        placement: ['header', 'footer', 'both', 'none'].includes(page.placement) ? page.placement : 'footer',
-        footerColumn: ['quick', 'legal', 'none'].includes(page.footerColumn) ? page.footerColumn : 'legal',
+        placement: normalizePlacement(page.placement),
+        footerColumn: normalizeFooterColumn(page.footerColumn),
         isActive: page.isActive !== false,
       }))
       .filter((page) => page.title && page.slug && page.isActive)
@@ -86,7 +102,7 @@ export async function fetchPublicSiteSettings(): Promise<PublicSiteSettings> {
     const data = await response.json()
     const settings = data?.settings && typeof data.settings === 'object' ? data.settings : {}
 
-    return {
+    const merged = {
       ...DEFAULT_PUBLIC_SITE_SETTINGS,
       ...Object.fromEntries(
         Object.entries(DEFAULT_PUBLIC_SITE_SETTINGS).map(([key, defaultValue]) => [
@@ -94,6 +110,14 @@ export async function fetchPublicSiteSettings(): Promise<PublicSiteSettings> {
           typeof settings[key] === 'string' && settings[key].trim() ? settings[key] : defaultValue,
         ])
       ),
+    }
+
+    return {
+      ...merged,
+      page_terms_placement: normalizePlacement(merged.page_terms_placement),
+      page_privacy_placement: normalizePlacement(merged.page_privacy_placement),
+      page_terms_footer_column: normalizeFooterColumn(merged.page_terms_footer_column),
+      page_privacy_footer_column: normalizeFooterColumn(merged.page_privacy_footer_column),
     }
   } catch {
     return DEFAULT_PUBLIC_SITE_SETTINGS
