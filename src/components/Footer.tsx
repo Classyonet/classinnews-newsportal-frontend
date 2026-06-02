@@ -67,14 +67,27 @@ export default function Footer() {
       title: 'Terms and Conditions',
       placement: settings.page_terms_placement,
       footerColumn: settings.page_terms_footer_column,
+      hasContent: settings.page_terms_conditions.trim().length > 0,
     },
     {
       href: '/privacy-policy',
       title: 'Privacy Policy',
       placement: settings.page_privacy_placement,
       footerColumn: settings.page_privacy_footer_column,
+      hasContent: settings.page_privacy_policy.trim().length > 0,
     },
-  ].filter((page) => page.placement === 'footer' || page.placement === 'both')
+  ].filter((page) => {
+    if (page.placement === 'none' || page.placement === 'header') {
+      return false
+    }
+
+    // Resilient fallback: if placement value drifts but page content exists, keep it visible in footer.
+    if (page.placement !== 'footer' && page.placement !== 'both') {
+      return page.hasContent
+    }
+
+    return true
+  })
   const quickCustomPages = customPages.filter((page) =>
     (page.placement === 'footer' || page.placement === 'both') && page.footerColumn === 'quick'
   )
