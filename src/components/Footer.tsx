@@ -117,6 +117,12 @@ export default function Footer() {
       })
       .map((page) => ({ href: `/pages/${page.slug}`, title: page.title })),
   ]
+  const legalLinkMap = new Map<string, string>([
+    ['/terms', 'Terms and Conditions'],
+    ['/privacy-policy', 'Privacy Policy'],
+  ])
+  legalLinks.forEach((page) => legalLinkMap.set(page.href, page.title))
+  const legalLinksToRender = Array.from(legalLinkMap.entries()).map(([href, title]) => ({ href, title }))
   const quickManagedPages = managedLegalPages
     .filter((page) => page.footerColumn === 'quick')
     .map((page) => ({ href: page.href, title: page.title }))
@@ -210,15 +216,13 @@ export default function Footer() {
               Contact Classy News: support@classinnews.com
             </Link>
           </div>
-          {legalLinks.length > 0 && (
-            <div className="mb-4 flex flex-wrap justify-center gap-4">
-              {legalLinks.map((page) => (
-                <Link key={page.href} href={page.href} className="hover:text-primary-400">
-                  {page.title}
-                </Link>
-              ))}
-            </div>
-          )}
+          <div className="mb-4 flex flex-wrap justify-center gap-4">
+            {legalLinksToRender.map((page) => (
+              <Link key={page.href} href={page.href} className="hover:text-primary-400">
+                {page.title}
+              </Link>
+            ))}
+          </div>
           <p>{settings.footer_footnote || `© ${new Date().getFullYear()} ${siteName}. All rights reserved.`}</p>
         </div>
       </div>
