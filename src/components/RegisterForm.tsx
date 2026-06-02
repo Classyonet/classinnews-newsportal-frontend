@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { NEWS_API_ROOT } from "@/lib/api-config";
+import { fetchPublicSiteSettings, resolveLegalCustomPagePath } from "@/lib/public-site-settings";
 
 const API_URL = NEWS_API_ROOT;
 
@@ -21,6 +22,8 @@ export default function RegisterForm() {
   const [viewedTerms, setViewedTerms] = useState(false);
   const [viewedPrivacy, setViewedPrivacy] = useState(false);
   const [acceptedLegal, setAcceptedLegal] = useState(false);
+  const [termsLink, setTermsLink] = useState("/pages/terms-and-conditions");
+  const [privacyLink, setPrivacyLink] = useState("/pages/privacy-policy");
 
   const legalReady = viewedTerms && viewedPrivacy && acceptedLegal;
   const canCreateAccount = legalReady && !loading;
@@ -30,6 +33,15 @@ export default function RegisterForm() {
       .then((res) => res.json())
       .then((data) => {
         if (data?.providers?.google) setGoogleEnabled(true);
+      })
+      .catch(() => {});
+
+    fetchPublicSiteSettings()
+      .then((settings) => {
+        const customTermsPath = resolveLegalCustomPagePath(settings.custom_pages, "terms");
+        const customPrivacyPath = resolveLegalCustomPagePath(settings.custom_pages, "privacy");
+        if (customTermsPath) setTermsLink(customTermsPath);
+        if (customPrivacyPath) setPrivacyLink(customPrivacyPath);
       })
       .catch(() => {});
   }, []);
@@ -323,7 +335,7 @@ export default function RegisterForm() {
                     </p>
                     <div className="mt-3 grid gap-2 sm:grid-cols-2">
                       <Link
-                        href="/terms"
+                        href={termsLink}
                         target="_blank"
                         onClick={() => setViewedTerms(true)}
                         className={`rounded-xl border px-3 py-2 text-center text-sm font-semibold transition ${
@@ -335,7 +347,7 @@ export default function RegisterForm() {
                         {viewedTerms ? "Terms viewed" : "View Terms"}
                       </Link>
                       <Link
-                        href="/privacy-policy"
+                        href={privacyLink}
                         target="_blank"
                         onClick={() => setViewedPrivacy(true)}
                         className={`rounded-xl border px-3 py-2 text-center text-sm font-semibold transition ${

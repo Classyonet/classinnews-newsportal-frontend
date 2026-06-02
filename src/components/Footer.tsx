@@ -61,71 +61,13 @@ export default function Footer() {
     { href: settings.social_email_url, icon: Mail, label: 'Email' },
   ].filter((item) => item.href.trim())
   const customPages = parseCustomPages(settings.custom_pages)
-  const managedLegalPages = [
-    {
-      href: '/terms',
-      title: 'Terms and Conditions',
-      placement: settings.page_terms_placement,
-      footerColumn: settings.page_terms_footer_column,
-      hasContent: settings.page_terms_conditions.trim().length > 0,
-    },
-    {
-      href: '/privacy-policy',
-      title: 'Privacy Policy',
-      placement: settings.page_privacy_placement,
-      footerColumn: settings.page_privacy_footer_column,
-      hasContent: settings.page_privacy_policy.trim().length > 0,
-    },
-  ].filter((page) => {
-    if (page.placement === 'none' || page.placement === 'header') {
-      return false
-    }
-
-    // Resilient fallback: if placement value drifts but page content exists, keep it visible in footer.
-    if (page.placement !== 'footer' && page.placement !== 'both') {
-      return page.hasContent
-    }
-
-    return true
-  })
   const quickCustomPages = customPages.filter((page) =>
     (page.placement === 'footer' || page.placement === 'both') && page.footerColumn === 'quick'
   )
   const legalCustomPages = customPages.filter((page) =>
     (page.placement === 'footer' || page.placement === 'both') && page.footerColumn !== 'quick'
   )
-  const managedLegalSlugsInFooter = new Set(
-    managedLegalPages
-      .filter((page) => page.footerColumn !== 'quick')
-      .map((page) => (page.href === '/terms' ? 'terms' : page.href === '/privacy-policy' ? 'privacy-policy' : ''))
-      .filter(Boolean)
-  )
-  const legalLinks = [
-    ...managedLegalPages
-      .filter((page) => page.footerColumn !== 'quick')
-      .map((page) => ({ href: page.href, title: page.title })),
-    ...legalCustomPages
-      .filter((page) => {
-        // Keep custom legal pages unless the equivalent managed page is also in footer.
-        if (page.slug === 'terms' || page.slug === 'terms-and-conditions') {
-          return !managedLegalSlugsInFooter.has('terms')
-        }
-        if (page.slug === 'privacy' || page.slug === 'privacy-policy') {
-          return !managedLegalSlugsInFooter.has('privacy-policy')
-        }
-        return true
-      })
-      .map((page) => ({ href: `/pages/${page.slug}`, title: page.title })),
-  ]
-  const legalLinkMap = new Map<string, string>([
-    ['/terms', 'Terms and Conditions'],
-    ['/privacy-policy', 'Privacy Policy'],
-  ])
-  legalLinks.forEach((page) => legalLinkMap.set(page.href, page.title))
-  const legalLinksToRender = Array.from(legalLinkMap.entries()).map(([href, title]) => ({ href, title }))
-  const quickManagedPages = managedLegalPages
-    .filter((page) => page.footerColumn === 'quick')
-    .map((page) => ({ href: page.href, title: page.title }))
+  const legalLinksToRender = legalCustomPages.map((page) => ({ href: `/pages/${page.slug}`, title: page.title }))
 
   return (
     <footer className="bg-gray-900 text-gray-300">
@@ -157,11 +99,6 @@ export default function Footer() {
               <li>
                 <Link href="/contact" className="hover:text-primary-400">Contact Us</Link>
               </li>
-              {quickManagedPages.map((page) => (
-                <li key={page.href}>
-                  <Link href={page.href} className="hover:text-primary-400">{page.title}</Link>
-                </li>
-              ))}
               {quickCustomPages.map((page) => (
                 <li key={page.slug}>
                   <Link href={`/pages/${page.slug}`} className="hover:text-primary-400">{page.title}</Link>

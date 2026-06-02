@@ -33,6 +33,8 @@ export interface CustomPageLink {
   isActive: boolean
 }
 
+type LegalPageKind = 'terms' | 'privacy'
+
 const normalizePlacement = (value: unknown): CustomPageLink['placement'] => {
   const normalized = String(value || '').trim().toLowerCase()
   if (normalized === 'header' || normalized === 'footer' || normalized === 'both' || normalized === 'none') {
@@ -90,6 +92,41 @@ export function parseCustomPages(raw: string): CustomPageLink[] {
   } catch {
     return []
   }
+}
+
+const matchLegalPage = (page: CustomPageLink, kind: LegalPageKind): boolean => {
+  const slug = page.slug.toLowerCase()
+  const title = page.title.toLowerCase()
+
+  if (kind === 'terms') {
+    return (
+      slug.includes('terms') ||
+      slug.includes('t-and-c') ||
+      title.includes('terms') ||
+      title.includes('conditions')
+    )
+  }
+
+  return (
+    slug.includes('privacy') ||
+    title.includes('privacy')
+  )
+}
+
+export function resolveLegalCustomPage(
+  customPagesRaw: string,
+  kind: LegalPageKind
+): CustomPageLink | null {
+  const pages = parseCustomPages(customPagesRaw)
+  return pages.find((page) => matchLegalPage(page, kind)) || null
+}
+
+export function resolveLegalCustomPagePath(
+  customPagesRaw: string,
+  kind: LegalPageKind
+): string | null {
+  const page = resolveLegalCustomPage(customPagesRaw, kind)
+  return page ? `/pages/${page.slug}` : null
 }
 
 export async function fetchPublicSiteSettings(): Promise<PublicSiteSettings> {

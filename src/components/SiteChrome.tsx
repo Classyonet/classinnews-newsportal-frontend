@@ -23,7 +23,11 @@ const AUTH_PATHS = [
 
 export default function SiteChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
-  const isAuthPage = AUTH_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`))
+  const normalizedPathname = (pathname || '').toLowerCase().replace(/\/+$/, '') || '/'
+  const isAuthPage = AUTH_PATHS.some((path) => {
+    const normalizedAuthPath = path.toLowerCase().replace(/\/+$/, '')
+    return normalizedPathname === normalizedAuthPath || normalizedPathname.startsWith(`${normalizedAuthPath}/`)
+  })
 
   if (isAuthPage) {
     return (

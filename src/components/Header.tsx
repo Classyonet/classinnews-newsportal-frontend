@@ -222,18 +222,6 @@ export default function Header() {
   const headerCustomPages = parseCustomPages(publicSiteSettings.custom_pages).filter(
     (page) => page.placement === 'header' || page.placement === 'both'
   )
-  const headerManagedPages = [
-    {
-      href: '/terms',
-      title: 'Terms and Conditions',
-      placement: publicSiteSettings.page_terms_placement,
-    },
-    {
-      href: '/privacy-policy',
-      title: 'Privacy Policy',
-      placement: publicSiteSettings.page_privacy_placement,
-    },
-  ].filter((page) => page.placement === 'header' || page.placement === 'both')
 
   return (
     <header className="bg-white shadow-sm">
@@ -263,15 +251,6 @@ export default function Header() {
               <Link href="/contact" className="text-gray-700 hover:text-red-600 font-medium transition-colors">
                 Contact
               </Link>
-              {headerManagedPages.map((page) => (
-                <Link
-                  key={page.href}
-                  href={page.href}
-                  className="text-gray-700 hover:text-red-600 font-medium transition-colors"
-                >
-                  {page.title}
-                </Link>
-              ))}
               {headerCustomPages.map((page) => (
                 <Link
                   key={page.slug}
@@ -506,16 +485,6 @@ export default function Header() {
                 <Link href="/contact" onClick={() => setShowMobileMenu(false)} className="px-3 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-lg font-medium transition-colors">
                   Contact
                 </Link>
-                {headerManagedPages.map((page) => (
-                  <Link
-                    key={page.href}
-                    href={page.href}
-                    onClick={() => setShowMobileMenu(false)}
-                    className="px-3 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-lg font-medium transition-colors"
-                  >
-                    {page.title}
-                  </Link>
-                ))}
                 {headerCustomPages.map((page) => (
                   <Link
                     key={page.slug}
