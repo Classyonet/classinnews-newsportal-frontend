@@ -34,6 +34,7 @@ export interface CustomPageLink {
 }
 
 type LegalPageKind = 'terms' | 'privacy'
+type ManagedPageKind = LegalPageKind | 'about' | 'contact'
 
 const normalizePlacement = (value: unknown): CustomPageLink['placement'] => {
   const normalized = String(value || '').trim().toLowerCase()
@@ -94,7 +95,7 @@ export function parseCustomPages(raw: string): CustomPageLink[] {
   }
 }
 
-const matchLegalPage = (page: CustomPageLink, kind: LegalPageKind): boolean => {
+const matchManagedPage = (page: CustomPageLink, kind: ManagedPageKind): boolean => {
   const slug = page.slug.toLowerCase()
   const title = page.title.toLowerCase()
 
@@ -108,17 +109,27 @@ const matchLegalPage = (page: CustomPageLink, kind: LegalPageKind): boolean => {
   }
 
   return (
-    slug.includes('privacy') ||
-    title.includes('privacy')
+    kind === 'privacy'
+      ? slug.includes('privacy') || title.includes('privacy')
+      : kind === 'about'
+        ? slug.includes('about') || title.includes('about')
+        : slug.includes('contact') || title.includes('contact')
   )
+}
+
+export function resolveManagedCustomPage(
+  customPagesRaw: string,
+  kind: ManagedPageKind
+): CustomPageLink | null {
+  const pages = parseCustomPages(customPagesRaw)
+  return pages.find((page) => matchManagedPage(page, kind)) || null
 }
 
 export function resolveLegalCustomPage(
   customPagesRaw: string,
   kind: LegalPageKind
 ): CustomPageLink | null {
-  const pages = parseCustomPages(customPagesRaw)
-  return pages.find((page) => matchLegalPage(page, kind)) || null
+  return resolveManagedCustomPage(customPagesRaw, kind)
 }
 
 export function resolveLegalCustomPagePath(
