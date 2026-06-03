@@ -138,6 +138,13 @@ export default function HomePage() {
         }
 
         // Fetch all data in parallel for faster loading (with caching)
+        const mediaHeadingsPromise = fetch(
+          `${ADMIN_API_URL}/api/media/channel-headings?surface=newsportal`,
+          { cache: 'no-store' }
+        )
+          .then((response) => response.ok ? response.json() : { success: false, data: {} })
+          .catch(() => ({ success: false, data: {} }));
+
         const [
           trendingRes,
           latestRes,
@@ -151,7 +158,7 @@ export default function HomePage() {
           cachedFetchSafe(`${API_URL}/api/articles/most-read?limit=4&minViews=${minViews}`, 'homepage', []),
           cachedFetchSafe(`${API_URL}/api/categories`, 'categories', []),
           cachedFetchSafe(`${ADMIN_API_URL}/api/media/channels`, 'media', { success: false, data: [] }),
-          cachedFetchSafe(`${ADMIN_API_URL}/api/media/channel-headings`, 'media', { success: false, data: {} })
+          mediaHeadingsPromise
         ]);
 
         // Process trending - first one is featured, rest are popular
@@ -514,7 +521,7 @@ export default function HomePage() {
             </div>
 
             <YoutubeChannelsSection
-              title={getMediaHeading('youtube', 'YOUTUBE LATEST')}
+              title={getMediaHeading('youtube', 'Popular YouTube Channels')}
               channels={youtubeChannels}
             />
 
@@ -572,14 +579,14 @@ export default function HomePage() {
             )}
 
             <YoutubeChannelsSection
-              title={getMediaHeading('youtube2', 'YOUTUBE 2')}
+              title={getMediaHeading('youtube2', 'YouTube 2')}
               channels={youtube2Channels}
             />
 
             <ShowbizGrid articles={showbizArticles} />
 
             <YoutubeChannelsSection
-              title={getMediaHeading('youtube4', 'YOUTUBE 4')}
+              title={getMediaHeading('youtube4', 'YouTube 4')}
               channels={youtube4Channels}
             />
           </div>

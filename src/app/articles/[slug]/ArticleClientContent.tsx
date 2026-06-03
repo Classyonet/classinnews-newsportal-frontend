@@ -4,9 +4,9 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Heart, MessageCircle, Share2, ThumbsUp, ThumbsDown, Facebook, Twitter, Linkedin, UserPlus, Users } from 'lucide-react';
+import { Heart, MessageCircle, Share2, ThumbsUp, ThumbsDown, Facebook, Twitter, Linkedin, UserPlus, Users, PlayCircle } from 'lucide-react';
 import AdDisplay from '@/components/AdDisplay';
-import { NEWS_API_URL } from '@/lib/api-config';
+import { ADMIN_API_URL, NEWS_API_URL } from '@/lib/api-config';
 import {
   fetchCurrentReader,
   getStoredReaderUser,
@@ -14,6 +14,20 @@ import {
 } from '@/lib/reader-session';
 
 const API_URL = NEWS_API_URL;
+
+interface MediaChannel {
+  id: string;
+  channel_type: string;
+  name: string;
+  stream_url: string;
+  logo_url?: string | null;
+  description?: string | null;
+  latest_video_url?: string | null;
+  latest_video_thumbnail_url?: string | null;
+  latest_video_title?: string | null;
+}
+
+type MediaHeadings = Record<string, string>;
 
 interface Article {
   id: string;
@@ -84,6 +98,8 @@ export default function ArticlePage() {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyText, setReplyText] = useState('');
+  const [youtube3Channels, setYoutube3Channels] = useState<MediaChannel[]>([]);
+  const [mediaHeadings, setMediaHeadings] = useState<MediaHeadings>({});
 
   const recordArticleView = (articleSlug: string) => {
     if (typeof window === 'undefined') return;
@@ -183,6 +199,56 @@ export default function ArticlePage() {
         setLoading(false);
       });
   }, [slug, isAuthenticated]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const fetchArticleMedia = async () => {
+      try {
+        const [channelsResponse, headingsResponse] = await Promise.all([
+          fetch(`${ADMIN_API_URL}/api/media/channels?type=youtube3`, { cache: 'no-store' }),
+          fetch(`${ADMIN_API_URL}/api/media/channel-headings?surface=article`, { cache: 'no-store' }),
+        ]);
+
+        const [channelsJson, headingsJson] = await Promise.all([
+          channelsResponse.ok ? channelsResponse.json() : { success: false, data: [] },
+          headingsResponse.ok ? headingsResponse.json() : { success: false, data: {} },
+        ]);
+
+        if (cancelled) return;
+
+        const mediaData = Array.isArray(channelsJson)
+          ? channelsJson
+          : Array.isArray(channelsJson?.data)
+          ? channelsJson.data
+          : [];
+        setYoutube3Channels(mediaData.filter((channel: any) => (
+          channel?.id &&
+          channel?.name &&
+          channel?.stream_url &&
+          String(channel?.channel_type || '').trim().toLowerCase() === 'youtube3'
+        )));
+
+        const headingsData = headingsJson?.data;
+        setMediaHeadings(
+          headingsData && typeof headingsData === 'object' && !Array.isArray(headingsData)
+            ? headingsData
+            : {}
+        );
+      } catch (err) {
+        if (!cancelled) {
+          setYoutube3Channels([]);
+          setMediaHeadings({});
+        }
+      }
+    };
+
+    fetchArticleMedia();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Handle Like - Allow unlimited likes, with unlike option
   const handleLike = async () => {
@@ -340,6 +406,8 @@ export default function ArticlePage() {
     );
   }
 
+  const youtube3Title = mediaHeadings.youtube3?.trim() || 'Sport Highlights';
+
   return (
     <div className="bg-gray-50 min-h-screen">
       {/* Top Banner Ad - Desktop only */}
@@ -458,6 +526,8 @@ export default function ArticlePage() {
                 className="prose prose-lg max-w-none mb-8"
                 dangerouslySetInnerHTML={{ __html: article.content }}
               />
+
+              <ArticleYoutubeSection title={youtube3Title} channels={youtube3Channels} />
 
               {/* Inline Ad 2 - After content, desktop only */}
               <div className="hidden md:block my-8 py-4 bg-gray-50 border-y border-gray-200">
@@ -920,5 +990,91 @@ export default function ArticlePage() {
         </div>
       </div>
     </div>
+  );
+}
+
+function normalizeExternalUrl(rawUrl?: string | null): string {
+  const trimmed = (rawUrl || '').trim();
+  if (!trimmed) return '';
+  return /^[a-zA-Z][a-zA-Z\d+\-.]*:/.test(trimmed) ? trimmed : `https://${trimmed}`;
+}
+
+function normalizeMediaImageUrl(rawUrl?: string | null): string {
+  let value = (rawUrl || '').trim();
+  if (!value) return '';
+
+  const lower = value.toLowerCase();
+  const duplicateHttpIndex = lower.indexOf('http://', 1);
+  const duplicateHttpsIndex = lower.indexOf('https://', 1);
+  const duplicateAbsoluteIndex = [duplicateHttpIndex, duplicateHttpsIndex]
+    .filter((index) => index > 0)
+    .sort((a, b) => a - b)[0];
+  if (duplicateAbsoluteIndex) {
+    value = value.slice(duplicateAbsoluteIndex);
+  }
+
+  if (/^https?:\/\//i.test(value)) {
+    return value;
+  }
+
+  return value.startsWith('/') ? `${ADMIN_API_URL}${value}` : `${ADMIN_API_URL}/${value}`;
+}
+
+function mediaPlayableUrl(channel: MediaChannel): string {
+  return normalizeExternalUrl(channel.latest_video_url || channel.stream_url);
+}
+
+function mediaImageUrl(channel: MediaChannel): string {
+  return normalizeMediaImageUrl(channel.latest_video_thumbnail_url || channel.logo_url);
+}
+
+function ArticleYoutubeSection({ title, channels }: { title: string; channels: MediaChannel[] }) {
+  if (channels.length === 0) return null;
+
+  return (
+    <section className="mb-8 rounded-lg border border-gray-200 bg-gray-50 p-4">
+      <div className="mb-4 flex items-center justify-between border-b-2 border-red-600 pb-2">
+        <h2 className="text-xl font-bold text-gray-900">{title}</h2>
+      </div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {channels.slice(0, 4).map((channel) => {
+          const imageUrl = mediaImageUrl(channel);
+          return (
+            <a
+              key={channel.id}
+              href={mediaPlayableUrl(channel)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+            >
+              <div className="relative h-40 bg-gray-900">
+                {imageUrl ? (
+                  <Image
+                    src={imageUrl}
+                    alt={channel.latest_video_title || channel.name}
+                    fill
+                    className="object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full items-center justify-center text-white">
+                    <PlayCircle className="h-12 w-12" />
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
+                <PlayCircle className="absolute bottom-3 left-3 h-9 w-9 text-white drop-shadow" />
+              </div>
+              <div className="p-3">
+                <h3 className="line-clamp-2 text-sm font-extrabold leading-snug text-gray-900 group-hover:text-red-600">
+                  {channel.latest_video_title?.trim() || channel.name}
+                </h3>
+                <p className="mt-1 line-clamp-1 text-xs font-semibold text-gray-500">
+                  {channel.name}
+                </p>
+              </div>
+            </a>
+          );
+        })}
+      </div>
+    </section>
   );
 }

@@ -248,9 +248,6 @@ export default function Header() {
               <Link href="/" className="text-gray-700 hover:text-red-600 font-medium transition-colors">
                 Home
               </Link>
-              <Link href="/contact" className="text-gray-700 hover:text-red-600 font-medium transition-colors">
-                Contact
-              </Link>
               {headerCustomPages.map((page) => (
                 <Link
                   key={page.slug}
@@ -481,9 +478,6 @@ export default function Header() {
               <nav className="flex flex-col space-y-2">
                 <Link href="/" onClick={() => setShowMobileMenu(false)} className="px-3 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-lg font-medium transition-colors">
                   Home
-                </Link>
-                <Link href="/contact" onClick={() => setShowMobileMenu(false)} className="px-3 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-lg font-medium transition-colors">
-                  Contact
                 </Link>
                 {headerCustomPages.map((page) => (
                   <Link
