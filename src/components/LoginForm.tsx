@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { NEWS_API_ROOT } from "@/lib/api-config";
 import { storeReaderUser } from "@/lib/reader-session";
+import { fetchFrontendTextSettings, frontendTextDefaults, settingLines } from "@/lib/frontend-text-settings";
 
 const API_URL = NEWS_API_ROOT;
 
@@ -17,6 +18,7 @@ export default function LoginForm() {
   const [resending, setResending] = useState(false);
   const [resendSuccess, setResendSuccess] = useState(false);
   const [googleEnabled, setGoogleEnabled] = useState(false);
+  const [text, setText] = useState(frontendTextDefaults);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -38,6 +40,8 @@ export default function LoginForm() {
         if (data?.providers?.google) setGoogleEnabled(true);
       })
       .catch(() => {});
+
+    fetchFrontendTextSettings().then(setText);
   }, []);
 
   const handleGoogleLogin = () => {
@@ -114,16 +118,12 @@ export default function LoginForm() {
           <div className="absolute bottom-16 right-12 w-96 h-96 bg-white rounded-full blur-3xl" />
         </div>
         <div className="relative z-10 flex flex-col justify-center px-20 text-white">
-          <h1 className="text-5xl font-extrabold mb-4 leading-tight">Classy News</h1>
+          <h1 className="text-5xl font-extrabold mb-4 leading-tight">{text.frontend_reader_login_title}</h1>
           <p className="text-xl text-indigo-100 mb-8 leading-relaxed">
-            Your trusted source for quality news and insightful journalism.
+            {text.frontend_reader_login_description}
           </p>
           <ul className="space-y-4">
-            {[
-              "Personalized news feed",
-              "Save and bookmark articles",
-              "Engage with the community",
-            ].map((item) => (
+            {settingLines(text.frontend_reader_auth_features, frontendTextDefaults.frontend_reader_auth_features).map((item) => (
               <li key={item} className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -147,8 +147,8 @@ export default function LoginForm() {
 
           <div className="bg-white rounded-3xl shadow-xl border border-gray-200 p-10">
             <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-gray-900">Welcome back</h2>
-              <p className="text-gray-500 mt-2">Sign in to your reader account</p>
+              <h2 className="text-3xl font-bold text-gray-900">{text.frontend_reader_login_form_title}</h2>
+              <p className="text-gray-500 mt-2">{text.frontend_reader_login_form_subtitle}</p>
             </div>
 
             <button
