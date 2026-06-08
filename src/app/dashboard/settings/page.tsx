@@ -3,9 +3,11 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, User, Mail, Phone, Lock, Save, AlertCircle, CheckCircle } from 'lucide-react'
+import { ArrowLeft, User, Mail, Phone, Lock, Save, AlertCircle, CheckCircle, Trash2 } from 'lucide-react'
 import {
+  clearStoredReaderSession,
   fetchCurrentReader,
+  readerAuthFetch,
   storeReaderUser,
 } from '@/lib/reader-session'
 
@@ -13,6 +15,7 @@ export default function SettingsPage() {
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
   
   // Form states
@@ -122,6 +125,42 @@ export default function SettingsPage() {
       setMessage({ type: 'error', text: error.message || 'Failed to change password' })
     } finally {
       setSaving(false)
+    }
+  }
+
+  const handleDeleteAccount = async () => {
+    const confirmed = window.confirm(
+      'Delete your reader account? This removes your login access, profile details, likes, shares, and follows. This action cannot be undone.'
+    )
+
+    if (!confirmed) {
+      return
+    }
+
+    setDeleting(true)
+    setMessage(null)
+
+    try {
+      const response = await readerAuthFetch('/auth/me', {
+        method: 'DELETE',
+        headers: {
+          Accept: 'application/json',
+        },
+      })
+      const data = await response.json().catch(() => null)
+
+      if (!response.ok) {
+        throw new Error(data?.error || data?.message || 'Failed to delete account')
+      }
+
+      clearStoredReaderSession()
+      setMessage({ type: 'success', text: 'Your reader account has been deleted.' })
+      router.push('/')
+    } catch (error: any) {
+      console.error('Delete account error:', error)
+      setMessage({ type: 'error', text: error.message || 'Failed to delete account' })
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -334,6 +373,23 @@ export default function SettingsPage() {
                 </span>
               </div>
             </div>
+          </div>
+
+          {/* Delete Account */}
+          <div className="bg-white rounded-xl shadow-sm border border-red-200 p-6">
+            <h2 className="text-xl font-bold text-red-700 mb-2">Delete Reader Account</h2>
+            <p className="text-sm text-gray-600 mb-4">
+              Permanently remove your reader login, profile details, likes, shares, and followed publishers.
+            </p>
+            <button
+              type="button"
+              onClick={handleDeleteAccount}
+              disabled={deleting}
+              className="inline-flex items-center justify-center space-x-2 bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Trash2 className="h-4 w-4" />
+              <span>{deleting ? 'Deleting...' : 'Delete Account'}</span>
+            </button>
           </div>
         </div>
       </div>
