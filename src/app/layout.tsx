@@ -5,6 +5,8 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import { BrandingHead } from '@/components/BrandingHead'
 import SiteChrome from '@/components/SiteChrome'
+import { ADMIN_API_URL } from '@/lib/api-config'
+import { AdsenseScript } from '@/components/AdsenseScript'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -26,13 +28,30 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  let adsenseSnippet = '';
+  try {
+    const res = await fetch(`${ADMIN_API_URL}/api/settings/public/ads_verification`, {
+      next: { revalidate: 60 }
+    });
+    if (res.ok) {
+      const { data } = await res.json();
+      const setting = data?.find((s: any) => s.key === 'web_adsense_snippet');
+      if (setting?.value) adsenseSnippet = setting.value;
+    }
+  } catch (e) {
+    console.error('Failed to load adsense snippet:', e);
+  }
+
   return (
     <html lang="en">
+      <head>
+        <AdsenseScript snippet={adsenseSnippet} />
+      </head>
       <body className={inter.className}>
         <BrandingHead />
         <SiteChrome>{children}</SiteChrome>
