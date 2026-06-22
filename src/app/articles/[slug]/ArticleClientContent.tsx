@@ -36,6 +36,12 @@ interface Article {
   content: string;
   slug: string;
   featuredImageUrl?: string | null;
+  seoMetadata?: {
+    aiGenerated?: boolean;
+    sourceName?: string;
+    sourceUrl?: string;
+    featuredImagePresentation?: 'normal' | 'blurred';
+  } | null;
   publishedAt: string;
   viewsCount: number;
   likesCount: number;
@@ -407,6 +413,10 @@ export default function ArticlePage() {
   }
 
   const youtube3Title = mediaHeadings.youtube3?.trim() || 'Sport Highlights';
+  const articleMetadata = article.seoMetadata || {};
+  const sourceName = articleMetadata.sourceName?.trim();
+  const sourceUrl = articleMetadata.sourceUrl?.trim();
+  const shouldBlurFeaturedImage = articleMetadata.featuredImagePresentation === 'blurred';
 
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -498,6 +508,18 @@ export default function ArticlePage() {
                         day: 'numeric'
                       })}
                     </div>
+                    {sourceName && (
+                      <div className="mt-1 text-xs font-semibold text-gray-600">
+                        Source:{' '}
+                        {sourceUrl ? (
+                          <a href={sourceUrl} target="_blank" rel="noopener noreferrer" className="text-red-600 hover:text-red-700">
+                            {sourceName}
+                          </a>
+                        ) : (
+                          <span>{sourceName}</span>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded-full">
@@ -511,12 +533,12 @@ export default function ArticlePage() {
 
               {/* Featured Image */}
               {article.featuredImageUrl && (
-                <div className="relative w-full h-96 mb-6 bg-gray-200">
+                <div className="relative w-full h-96 mb-6 overflow-hidden bg-gray-200">
                   <Image
                     src={article.featuredImageUrl}
                     alt={article.title}
                     fill
-                    className="object-cover"
+                    className={`object-cover ${shouldBlurFeaturedImage ? 'scale-105 blur-sm' : ''}`}
                   />
                 </div>
               )}
