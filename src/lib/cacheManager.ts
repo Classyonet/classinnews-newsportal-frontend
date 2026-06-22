@@ -41,7 +41,7 @@ interface CacheSettings {
 }
 
 const DEFAULT_SETTINGS: CacheSettings = {
-  cache_enabled: true,
+  cache_enabled: false,
   cache_ttl_homepage: 300,
   cache_ttl_articles: 600,
   cache_ttl_article_detail: 900,
