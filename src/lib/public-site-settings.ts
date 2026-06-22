@@ -22,6 +22,7 @@ export interface PublicSiteSettings {
   page_privacy_footer_column: string
   footer_footnote: string
   custom_pages: string
+  latest_news_per_view: string
 }
 
 export interface CustomPageLink {
@@ -74,6 +75,7 @@ export const DEFAULT_PUBLIC_SITE_SETTINGS: PublicSiteSettings = {
   page_privacy_footer_column: 'legal',
   footer_footnote: 'Classy News - Your trusted source for the latest updates and breaking news.',
   custom_pages: '[]',
+  latest_news_per_view: '6',
 }
 
 export function parseCustomPages(raw: string): CustomPageLink[] {

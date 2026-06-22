@@ -171,7 +171,8 @@ export default function HomePage() {
         // Process latest news
         const latestArticles = Array.isArray(latestRes) ? latestRes : [];
         setLatestNews(latestArticles);
-        setLatestVisibleCount(6);
+        const latestViewLimit = parseInt(settings.latest_news_per_view, 10) || 6;
+        setLatestVisibleCount(latestViewLimit);
 
         // Process most read
         const mostReadArticles = Array.isArray(mostReadRes) ? mostReadRes : [];
